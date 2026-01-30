@@ -50,7 +50,7 @@ const Rechart = () => {
                 </div>
             </aside>
 
-            {/* MAIN CONTENT */}
+            
             <div style={styles.main}>
                 <header style={styles.header}>
                     <div>
@@ -65,7 +65,7 @@ const Rechart = () => {
                 </header>
 
                 <main style={styles.content}>
-                    {/* SEARCH AND FILTER SECTION */}
+                    
                     <div style={{ display: 'flex', marginBottom: '24px' }}>
                         <div style={styles.searchBar}>
                             <Search size={18} color="#94a3b8" style={{ marginRight: '10px' }} />
@@ -80,7 +80,7 @@ const Rechart = () => {
                         </button>
                     </div>
 
-                    {/* TABLE SECTION */}
+                
                     <div style={styles.card}>
                         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                             <thead>
@@ -100,7 +100,7 @@ const Rechart = () => {
                             </tbody>
                         </table>
 
-                        {/* PAGINATION */}
+                       
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '24px', borderTop: '1px solid #f1f5f9' }}>
                             <button style={{ padding: '8px 16px', border: '1px solid #e2e8f0', borderRadius: '8px', backgroundColor: 'white', color: '#64748b', fontSize: '13px', cursor: 'pointer' }}>Previous</button>
                             <span style={{ fontSize: '13px', color: '#64748b' }}>Page 1 of 10</span>

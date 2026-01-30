@@ -29,7 +29,6 @@ const TaskCompletion = () => {
 
 export default TaskCompletion;
 
-/* ============================= */
 
 const ProgressCircle = ({ value, label, strokeColor, textColor }) => {
   const radius = 34;

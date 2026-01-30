@@ -48,7 +48,6 @@ export default function MentorsTable({ data, setData }) {
         </tbody>
       </table>
 
-      {/* Pagination */}
       <div className="flex justify-between mt-4">
         <button
           disabled={page === 1}

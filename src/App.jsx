@@ -2,13 +2,13 @@ import { useState } from "react";
 import Sidebar from "./components/Sidebar";
 import Dashboard from "./components/Dashboard";
 import Mentors from "./components/mentor";
-import Interns from "./components/interns";
+import Interns from "./components/intern/index"
 import Tasks from "./components/Tasks";
 import { AppStateProvider } from './context/AppState';
 import Attendance from "./components/Attendance";
 import Reports from "./components/Reports";
 import LoginScreen from "./components/LoginScreen";
-import HR from "./components/hr";
+import HR from "./components/HrDashboard/index"
 import InternDashboard from "./components/intern/index";
 import MentorDashboard from "./components/mentor/index"
 import HrDashboard from "./components/HrDashboard/index"

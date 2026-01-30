@@ -10,7 +10,7 @@ import { useState, useContext } from "react";
 
 import { Trash2} from "lucide-react";
 
-// Mock Data for the Chart
+
 const chartData = [
   { name: 'Mon', attendance: 75 },
   { name: 'Tue', attendance: 55 },
@@ -54,8 +54,7 @@ const App = () => {
   const [mentorForm, setMentorForm] = useState({ name: '', email: '', team: '' });
   const [taskForm, setTaskForm] = useState({ title: '', description: '', assigneeType: 'intern', assigneeId: '' });
 
-  // DELETE
-  // VIEW
+ 
   const handleView = (intern) => {
     setSelectedIntern(intern);
   };
@@ -127,7 +126,7 @@ const App = () => {
         </div>
 </div>
         <main style={styles.content}>
-          {/* STATS */}
+        
           <div style={styles.statsGrid}>
             <StatCard icon={<Users color="#3b82f6" />} label="Total Interns" value="120" bg="#eff6ff" />
             <StatCard icon={<UserCheck color="#f97316" />} label="Present Today" value="92" bg="#fff7ed" />
@@ -136,7 +135,7 @@ const App = () => {
             <StatCard icon={<GraduationCap color="#f59e0b" />} label="Active Mentors" value="16" bg="#fffbeb" />
           </div>
 
-          {/* CHARTS */}
+      
           <div style={styles.sectionGrid}>
             <div style={styles.card}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
@@ -179,9 +178,9 @@ const App = () => {
             </div>
           </div>
 
-          {/* TABLE & ACTIONS */}
+         
         <div className="grid grid-cols-3 gap-6">
-      {/* TABLE */}
+     
       <div className="col-span-2 bg-white rounded-2xl border shadow-sm">
         <h3 className="p-5 font-semibold text-slate-800">Recent Activity</h3>
 
@@ -241,7 +240,7 @@ const App = () => {
         </table>
       </div>
 
-      {/* QUICK ACTION */}
+   
       <div className="bg-white rounded-2xl border p-5 shadow-sm">
         <h3 className="font-semibold mb-5">Quick Action</h3>
  {/* <button onClick={() => setOpenInternModal(true)} className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-medium hover:bg-blue-700 shadow-sm transition-all">
@@ -261,7 +260,7 @@ const App = () => {
         </div>
       </div>
 
-      {/* VIEW MODAL */}
+
       {selectedIntern && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
           <div className="bg-white p-6 rounded-xl w-[350px]">
@@ -279,7 +278,7 @@ const App = () => {
           </div>
         </div>
       )}
-      {/* Add Intern Modal */}
+      
       <Modal open={openInternModal} onClose={() => setOpenInternModal(false)} title={editingInternId ? "Edit Intern" : "Add Intern"}>
         <form onSubmit={submitAddIntern} className="space-y-3">
           <input required value={internForm.name} onChange={(e) => setInternForm((s) => ({ ...s, name: e.target.value }))} placeholder="Name" className="w-full border px-3 py-2 rounded-md" />
@@ -295,7 +294,6 @@ const App = () => {
         </form>
       </Modal>
 
-      {/* Add Mentor Modal */}
       <Modal open={openMentorModal} onClose={() => setOpenMentorModal(false)} title="Add Mentor">
         <form onSubmit={submitAddMentor} className="space-y-3">
           <input required value={mentorForm.name} onChange={(e) => setMentorForm((s) => ({ ...s, name: e.target.value }))} placeholder="Name" className="w-full border px-3 py-2 rounded-md" />
@@ -308,7 +306,7 @@ const App = () => {
         </form>
       </Modal>
 
-      {/* Assign Task Modal */}
+
       <Modal open={openTaskModal} onClose={() => setOpenTaskModal(false)} title="Assign Task">
         <form onSubmit={submitAddTask} className="space-y-3">
           <input required value={taskForm.title} onChange={(e) => setTaskForm((s) => ({ ...s, title: e.target.value }))} placeholder="Title" className="w-full border px-3 py-2 rounded-md" />
@@ -341,7 +339,7 @@ const ActionBtn = ({ icon, text, onClick }) => (
     {icon} {text}
   </button>
 );
-// Helper Components for clean code
+
 const StatCard = ({ icon, label, value, bg }) => (
   <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '16px', border: '1px solid #f1f5f9' }}>
     <div style={{ width: '40px', height: '40px', backgroundColor: bg, borderRadius: '10px', display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '15px' }}>

@@ -1,4 +1,3 @@
-// components/ProgressCircle.jsx
 export default function ProgressCircle({ percent, color }) {
   return (
     <div className="relative w-24 h-24">

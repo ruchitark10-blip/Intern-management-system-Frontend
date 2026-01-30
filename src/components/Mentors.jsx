@@ -1,8 +1,3 @@
-
-
-
-
-
 import { Eye, Edit, Trash2, Bell, Plus, Search, Filter } from "lucide-react";
 import { useMemo, useState } from "react";
 import AddMentorModal from "./AddMentorModal";
@@ -18,10 +13,7 @@ const initialMentors = [
 ];
 
 export default function MentorsTable() {
-  // replaced mentorOpen with addOpen below
-
-
-
+  
 
   const [mentors, setMentors] = useState(initialMentors);
   const [page, setPage] = useState(1);
@@ -46,7 +38,8 @@ export default function MentorsTable() {
     });
   }, [mentors, search, statusFilter]);
 
-  /* 📄 PAGINATION */
+ 
+  
   const totalPages = Math.ceil(filteredMentors.length / ITEMS_PER_PAGE);
   const paginatedMentors = filteredMentors.slice(
     (page - 1) * ITEMS_PER_PAGE,
@@ -55,13 +48,12 @@ export default function MentorsTable() {
 
  
 
-  /* ➕ ADD */
+ 
   const handleAdd = (mentor) => {
     setMentors([...mentors, { ...mentor, id: Date.now() }]);
     setAddOpen(false);
   };
 
-  /* ✏️ UPDATE */
   const handleUpdate = () => {
     setMentors(
       mentors.map((m) => (m.id === editMentor.id ? editMentor : m))
@@ -69,19 +61,19 @@ export default function MentorsTable() {
     setEditMentor(null);
   };
 
-  /* 🗑 DELETE */
+
   const handleDelete = (id) => {
     setMentors(mentors.filter((m) => m.id !== id));
   };
 
-  /* 👁 VIEW */
+  
   const handleView = (mentor) => {
     alert(`Mentor: ${mentor.name}\nEmail: ${mentor.email}`);
   };
 
   return (
     <div className="bg-white rounded-xl overflow-hidden">
-      {/* HEADER */}
+    
       <div className="flex flex-col lg:flex-row border-b justify-between items-start lg:items-center py-[14px] px-4 gap-4">
         <div>
           <h1 className="text-lg font-semibold text-gray-800">Dashboard</h1>
@@ -103,7 +95,7 @@ export default function MentorsTable() {
         </div>
       </div>
 
-      {/* SEARCH + FILTER */}
+
       <div className="p-4 flex items-center gap-3 mb-6">
         <div className="flex items-center gap-2 bg-white border rounded-xl px-4 py-2 flex-1">
           <Search size={18} className="text-gray-400" />
@@ -146,7 +138,7 @@ export default function MentorsTable() {
         </div>
       </div>
 
-      {/* TABLE */}
+  
       <table className="w-full text-sm m-2">
         <thead className="bg-gray-50 text-gray-400">
           <tr>
@@ -195,7 +187,7 @@ export default function MentorsTable() {
         </tbody>
       </table>
 
-      {/* PAGINATION */}
+     
       <div className="flex justify-between items-center p-4 text-sm">
         <button
           disabled={page === 1}
@@ -223,7 +215,7 @@ export default function MentorsTable() {
           Next
         </button>
       </div>
-      {/* ADD MODAL */}
+     
       {addOpen && (
         <AddMentorModal
           onAdd={handleAdd}
@@ -231,7 +223,7 @@ export default function MentorsTable() {
         />
       )}
 
-      {/* EDIT MODAL */}
+      
       {editMentor && (
         <div className="fixed inset-0 bg-black/30 flex items-center justify-center">
           <div className="bg-white p-6 rounded-xl w-96 space-y-4">
