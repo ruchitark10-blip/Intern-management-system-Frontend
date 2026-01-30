@@ -1,8 +1,8 @@
 import { useState } from "react";
 import Sidebar from "./components/Sidebar";
 import Dashboard from "./components/Dashboard";
-import Mentors from "./components/mentor";
-import Interns from "./components/intern/index"
+import Mentors from "./components/Mentors"
+import Interns from "./components/Interns"
 import Tasks from "./components/Tasks";
 import { AppStateProvider } from './context/AppState';
 import Attendance from "./components/Attendance";
