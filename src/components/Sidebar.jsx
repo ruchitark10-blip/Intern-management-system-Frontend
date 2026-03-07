@@ -5,7 +5,7 @@ import logo from "../assets/c.png";
 import { FiSettings } from "react-icons/fi";
 import { FaUser } from "react-icons/fa";
 import { LuLogOut } from "react-icons/lu";
-import {  Columns3Cog, PanelTop } from "lucide-react";
+import { Columns3Cog, PanelTop } from "lucide-react";
 import { MdOutlineSubscriptions } from "react-icons/md";
 import { FaUsers } from "react-icons/fa";
 import { GrTask } from "react-icons/gr";
@@ -13,6 +13,7 @@ import { PiFilesFill } from "react-icons/pi";
 
 const Sidebar = ({ active, setActive, sidebarOpen, setSidebarOpen, onLogout }) => {
   const [open, setOpen] = useState(false);
+  
   const menu = [
     {
       name: "Dashboard",
@@ -22,11 +23,13 @@ const Sidebar = ({ active, setActive, sidebarOpen, setSidebarOpen, onLogout }) =
       name: "Mentors",
       icon: FaUser,
     },
-
     {
       name: "Interns",
-      icon:FaUsers,
+      icon: FaUsers,
     },
+    /* ---------------------------------------------------------
+       HIDDEN COMPONENTS (Commented out so they won't be seen)
+       ---------------------------------------------------------
     {
       name: "Tasks",
       icon: GrTask,
@@ -39,10 +42,11 @@ const Sidebar = ({ active, setActive, sidebarOpen, setSidebarOpen, onLogout }) =
       name: "Report",
       icon: PiFilesFill,
     },
+    --------------------------------------------------------- */
   ];
   
   return (
-   <>
+    <>
       {sidebarOpen && (
         <div
           onClick={() => setSidebarOpen(false)}
@@ -52,33 +56,27 @@ const Sidebar = ({ active, setActive, sidebarOpen, setSidebarOpen, onLogout }) =
 
       <aside
         className={`
-    fixed md:sticky top-0 left-0 z-50
-    min-h-screen w-[240px]
-   bg-[#08469D] text-white
-    transition-transform duration-300
-    ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
-    md:translate-x-0
-    flex flex-col
-  `}
+          fixed md:sticky top-0 left-0 z-50
+          min-h-screen w-[240px]
+          bg-[#08469D] text-white
+          transition-transform duration-300
+          ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
+          md:translate-x-0
+          flex flex-col
+        `}
       >
-        <div className="h-[80px]  px-5 font-[Poppins] flex items-center bg-white justify-between">
+        {/* Logo Section */}
+        <div className="h-[80px] px-5 font-[Poppins] flex items-center bg-white justify-between">
           <div className="flex justify-between items-center gap-2">
             <img src={logo} className="h-14" alt="logo" />
-            {/* <div className=" gap-0  ">
-              <h1 className="text-[24px]  text-[#0c1b5b] font-[Roboto]  font-bold">
-                SolstraInfo
-              </h1>
-              <p className="text-[16px] text-[#FFA138]">
-                Super Admin Control 
-              </p>
-            </div> */}
           </div>
 
-          <button className="md:hidden" onClick={() => setSidebarOpen(false)}>
+          <button className="md:hidden text-black" onClick={() => setSidebarOpen(false)}>
             <IoClose size={22} />
           </button>
         </div>
 
+        {/* Navigation Menu */}
         <nav className="flex-1 font-[Poppins] px-4 pt-2 space-y-2">
           {menu.map((item) => {
             const Icon = item.icon;
@@ -102,10 +100,11 @@ const Sidebar = ({ active, setActive, sidebarOpen, setSidebarOpen, onLogout }) =
           })}
         </nav>
 
+        {/* Bottom Actions */}
         <div className="p-4 border-t font-[Poppins] border-white/10">
           <a
             href="#"
-            className="flex items-center rounded w-[204px] h-[44px] px-[16px] py-14px hover:bg-[#FFA138]"
+            className="flex items-center rounded w-full h-[44px] px-[16px] hover:bg-[#FFA138]"
           >
             <FiSettings className="h-[18px] w-[18px] " />
             <p className="p-2 text-white font-[poppins] font-[400] ">Settings</p>
@@ -113,7 +112,7 @@ const Sidebar = ({ active, setActive, sidebarOpen, setSidebarOpen, onLogout }) =
 
           <button
             onClick={() => onLogout && onLogout()}
-            className="flex items-center rounded w-[204px] h-[44px] px-[16px] py-14px hover:bg-[#FFA138] text-left"
+            className="flex items-center rounded w-full h-[44px] px-[16px] hover:bg-[#FFA138] text-left"
           >
             <LuLogOut className="h-[18px] w-[18px] " />
             <p className="p-2 text-white font-[poppins] font-[400] ">Logout</p>

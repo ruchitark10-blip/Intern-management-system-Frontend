@@ -8,16 +8,16 @@ import { IoClose } from "react-icons/io5";
 import logo from "../../../assets/c.png";
 import { FiSettings } from "react-icons/fi";
 import { LuLogOut } from "react-icons/lu";
-import { Building2, Columns3Cog, PanelTop,GraduationCap  } from "lucide-react";
+import { Building2, Columns3Cog, PanelTop, GraduationCap } from "lucide-react";
 import { MdOutlineSubscriptions } from "react-icons/md";
 import BusinessIcon from "@mui/icons-material/Business";
 import PieChartIcon from "@mui/icons-material/PieChart";
 import { BsChatSquareQuote } from "react-icons/bs";
 import { GrTask } from "react-icons/gr";
 
-
-const Sidebar = ({onLogout, active, setActive, sidebarOpen, setSidebarOpen }) => {
+const Sidebar = ({ onLogout, active, setActive, sidebarOpen, setSidebarOpen }) => {
   const [open, setOpen] = useState(false);
+
   const menu = [
     {
       name: "Dashboard",
@@ -27,19 +27,27 @@ const Sidebar = ({onLogout, active, setActive, sidebarOpen, setSidebarOpen }) =>
       name: "Attendance",
       icon: PanelTop,
     },
+
+    /* HIDDEN: Tasks Section
     {
       name: "Tasks",
       icon: GrTask,
     },
+    */
+
+    /* HIDDEN: Feedback Section
     {
       name: "Feedback",
       icon: BsChatSquareQuote,
     },
+    */
+
     {
       name: "Certificate",
       icon: GraduationCap,
     },
   ];
+
   return (
     <>
       {sidebarOpen && (
@@ -51,26 +59,18 @@ const Sidebar = ({onLogout, active, setActive, sidebarOpen, setSidebarOpen }) =>
 
       <aside
         className={`
-    fixed md:sticky top-0 left-0 z-50
-    min-h-screen w-[240px]
-   bg-[#08469D] text-white
-    transition-transform duration-300
-    ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
-    md:translate-x-0
-    flex flex-col
-  `}
+          fixed md:sticky top-0 left-0 z-50
+          min-h-screen w-[240px]
+          bg-[#08469D] text-white
+          transition-transform duration-300
+          ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
+          md:translate-x-0
+          flex flex-col
+        `}
       >
-        <div className="h-[80px]  px-5 font-[Poppins] flex items-center bg-white justify-between">
+        <div className="h-[80px] px-5 font-[Poppins] flex items-center bg-white justify-between">
           <div className="flex justify-between items-center gap-2">
             <img src={logo} className="h-14" alt="logo" />
-            {/* <div className=" gap-0  ">
-              <h1 className="text-[24px]  text-[#0c1b5b] font-[Roboto]  font-bold">
-                SolstraInfo
-              </h1>
-              <p className="text-[16px] text-[#FFA138]">
-                Super Admin Control 
-              </p>
-            </div> */}
           </div>
 
           <button className="md:hidden" onClick={() => setSidebarOpen(false)}>
@@ -81,6 +81,7 @@ const Sidebar = ({onLogout, active, setActive, sidebarOpen, setSidebarOpen }) =>
         <nav className="flex-1 font-[Poppins] px-4 pt-2 space-y-2">
           {menu.map((item) => {
             const Icon = item.icon;
+
             return (
               <button
                 key={item.name}
@@ -106,18 +107,22 @@ const Sidebar = ({onLogout, active, setActive, sidebarOpen, setSidebarOpen }) =>
             href="#"
             className="flex items-center rounded w-[204px] h-[44px] px-[16px] hover:bg-[#FFA138]"
           >
-            <FiSettings className="h-[18px] w-[18px] " />
-            <span className="p-2 text-white font-[poppins] font-[400] ">
+            <FiSettings className="h-[18px] w-[18px]" />
+            <span className="p-2 text-white font-[poppins] font-[400]">
               Settings
             </span>
           </a>
+
           <button
             type="button"
-            onClick={(e) => { e.preventDefault(); onLogout && onLogout(); }}
+            onClick={(e) => {
+              e.preventDefault();
+              onLogout && onLogout();
+            }}
             className="flex items-center rounded w-[204px] h-[44px] px-[16px] hover:bg-[#FFA138]"
           >
-            <LuLogOut className="h-[18px] w-[18px] " />
-            <span className="p-2 text-white font-[poppins] font-[400] ">
+            <LuLogOut className="h-[18px] w-[18px]" />
+            <span className="p-2 text-white font-[poppins] font-[400]">
               Logout
             </span>
           </button>

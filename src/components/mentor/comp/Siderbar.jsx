@@ -8,7 +8,6 @@ import { FaUsers } from "react-icons/fa";
 import { MdReviews } from "react-icons/md";
 import { LiaListAltSolid } from "react-icons/lia";
 
-
 const Sidebar = ({ active, setActive, sidebarOpen, setSidebarOpen ,onLogout }) => {
   const [open, setOpen] = useState(false);
   const menu = [
@@ -24,12 +23,16 @@ const Sidebar = ({ active, setActive, sidebarOpen, setSidebarOpen ,onLogout }) =
       name: "Assign Task",
       icon: LiaListAltSolid,
     },
+    /* ---------------------------------------------------------
+       HIDDEN ITEM (Commented out but code is preserved)
+       ---------------------------------------------------------
     {
       name: "Review Submissions",
       icon: MdReviews,
     },
-    
+    --------------------------------------------------------- */
   ];
+
   return (
     <>
       {sidebarOpen && (
@@ -41,16 +44,16 @@ const Sidebar = ({ active, setActive, sidebarOpen, setSidebarOpen ,onLogout }) =
 
       <aside
         className={`
-    fixed md:sticky top-0 left-0 z-50
-    min-h-screen w-[240px]
-    bg-[#08469D] text-white
-    transition-transform duration-300
-    ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
-    md:translate-x-0
-    flex flex-col
-  `}
+          fixed md:sticky top-0 left-0 z-50
+          min-h-screen w-[240px]
+          bg-[#08469D] text-white
+          transition-transform duration-300
+          ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
+          md:translate-x-0
+          flex flex-col
+        `}
       >
-        <div className="h-[80px]  px-5 font-[Poppins] flex items-center justify-between bg-white">
+        <div className="h-[80px] px-5 font-[Poppins] flex items-center justify-between bg-white">
           <div className="flex items-center gap-3">
             <img src={logo} alt="logo" />
           </div>
@@ -72,7 +75,7 @@ const Sidebar = ({ active, setActive, sidebarOpen, setSidebarOpen ,onLogout }) =
                 }}
                 className={`
                   flex items-center gap-3 w-full h-[44px] px-4 rounded
-                  hover:bg-[#F6901C]  transition
+                  hover:bg-[#F6901C] transition
                   ${active === item.name ? "bg-[#F6901C]" : ""}
                 `}
               >
@@ -86,7 +89,7 @@ const Sidebar = ({ active, setActive, sidebarOpen, setSidebarOpen ,onLogout }) =
         <div className="p-4 border-t font-[Poppins] border-white/10">
           <a
             href="#"
-            className="flex items-center  rounded w-[204px] h-[44px] px-[16px] py-14px hover:bg-[#F6901C]"
+            className="flex items-center rounded w-[204px] h-[44px] px-[16px] py-14px hover:bg-[#F6901C]"
           >
             <FiSettings className="h-[18px] w-[18px] " />
             <p className="p-2 text-[#FAFDEC] font-[poppins] font-[400] ">
@@ -95,10 +98,10 @@ const Sidebar = ({ active, setActive, sidebarOpen, setSidebarOpen ,onLogout }) =
           </a>
           <a
             href="#"
-            className="flex items-center  rounded w-[204px] h-[44px] px-[16px] py-14px hover:bg-[#F6901C]"
+            className="flex items-center rounded w-[204px] h-[44px] px-[16px] py-14px hover:bg-[#F6901C]"
           >
             <LuLogOut className="h-[18px] w-[18px] " />
-            <p  onClick={onLogout} className="p-2 text-[#FAFDEC] font-[poppins] font-[400] ">
+            <p onClick={onLogout} className="p-2 text-[#FAFDEC] font-[poppins] font-[400] ">
               Logout
             </p>
           </a>
