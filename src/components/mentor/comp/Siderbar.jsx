@@ -1,15 +1,16 @@
 import { PiSquaresFourThin } from "react-icons/pi";
 import { useState } from "react";
 import { IoClose } from "react-icons/io5";
-import logo from "../comp/c.png"
+import logo from "../comp/c.png";
 import { FiSettings } from "react-icons/fi";
 import { LuLogOut } from "react-icons/lu";
 import { FaUsers } from "react-icons/fa";
 import { MdReviews } from "react-icons/md";
 import { LiaListAltSolid } from "react-icons/lia";
 
-const Sidebar = ({ active, setActive, sidebarOpen, setSidebarOpen ,onLogout }) => {
+const Sidebar = ({ active, setActive, sidebarOpen, setSidebarOpen, onLogout }) => {
   const [open, setOpen] = useState(false);
+
   const menu = [
     {
       name: "Dashboard",
@@ -87,21 +88,24 @@ const Sidebar = ({ active, setActive, sidebarOpen, setSidebarOpen ,onLogout }) =
         </nav>
 
         <div className="p-4 border-t font-[Poppins] border-white/10">
+          {/*
           <a
             href="#"
             className="flex items-center rounded w-[204px] h-[44px] px-[16px] py-14px hover:bg-[#F6901C]"
           >
-            <FiSettings className="h-[18px] w-[18px] " />
+            <FiSettings className="h-[18px] w-[18px]" />
             <p className="p-2 text-[#FAFDEC] font-[poppins] font-[400] ">
               Settings
             </p>
           </a>
+          */}
           <a
             href="#"
-            className="flex items-center rounded w-[204px] h-[44px] px-[16px] py-14px hover:bg-[#F6901C]"
+            className="flex items-center rounded w-[204px] h-[44px] px-[16px] py-14px hover:bg-[#F6901C] text-left"
+            onClick={onLogout}
           >
-            <LuLogOut className="h-[18px] w-[18px] " />
-            <p onClick={onLogout} className="p-2 text-[#FAFDEC] font-[poppins] font-[400] ">
+            <LuLogOut className="h-[18px] w-[18px]" />
+            <p className="p-2 text-[#FAFDEC] font-[poppins] font-[400] ">
               Logout
             </p>
           </a>

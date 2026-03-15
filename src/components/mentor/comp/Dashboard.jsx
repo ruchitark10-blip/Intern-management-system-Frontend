@@ -49,20 +49,15 @@ export default function Dashboard() {
   };
 
   const totalPages = Math.ceil(tasks.length / itemsPerPage);
-
   const startIndex = (currentPage - 1) * itemsPerPage;
   const currentData = tasks.slice(startIndex, startIndex + itemsPerPage);
 
   const handleNext = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage((prev) => prev + 1);
-    }
+    if (currentPage < totalPages) setCurrentPage((prev) => prev + 1);
   };
 
   const handlePrevious = () => {
-    if (currentPage > 1) {
-      setCurrentPage((prev) => prev - 1);
-    }
+    if (currentPage > 1) setCurrentPage((prev) => prev - 1);
   };
 
   return (
@@ -80,19 +75,10 @@ export default function Dashboard() {
             </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full lg:w-auto">
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="bg-blue-600 text-white w-full sm:w-auto px-4 h-9 rounded-lg text-sm"
-            >
-              + Assign Task
-            </button>
-
-            <div className="flex items-center gap-4">
-              <Bell className="text-gray-500" />
-              <div className="h-8 w-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm">
-                SI
-              </div>
+          <div className="flex items-center gap-4">
+            <Bell className="text-gray-500" />
+            <div className="h-8 w-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm">
+              SI
             </div>
           </div>
         </div>

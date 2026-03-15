@@ -1,18 +1,15 @@
 import { useState } from "react";
 
 function AddTaskModal({ onAdd, onClose }) {
-
   const [taskName, setTaskName] = useState("");
   const [description, setDescription] = useState("");
-  const [intern, setIntern] = useState("");
 
   const handleSubmit = () => {
-    if (!taskName || !intern) return;
+    if (!taskName) return;
 
     onAdd({
       name: taskName,
       description,
-      intern,
     });
 
     onClose();
@@ -20,9 +17,7 @@ function AddTaskModal({ onAdd, onClose }) {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center">
-
       <div className="bg-white rounded-lg p-6 w-[400px]">
-
         <h2 className="text-lg font-semibold mb-4">Assign Task</h2>
 
         <input
@@ -35,17 +30,9 @@ function AddTaskModal({ onAdd, onClose }) {
 
         <textarea
           placeholder="Task Description"
-          className="w-full border p-2 rounded mb-3"
+          className="w-full border p-2 rounded mb-4"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-        />
-
-        <input
-          type="text"
-          placeholder="Intern Name"
-          className="w-full border p-2 rounded mb-4"
-          value={intern}
-          onChange={(e) => setIntern(e.target.value)}
         />
 
         <div className="flex justify-end gap-3">
@@ -63,9 +50,7 @@ function AddTaskModal({ onAdd, onClose }) {
             Assign Task
           </button>
         </div>
-
       </div>
-
     </div>
   );
 }

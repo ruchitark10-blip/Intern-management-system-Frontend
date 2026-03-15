@@ -3,25 +3,68 @@ import React, { useState } from "react";
 export default function AddMentorModal({ onAdd, onClose, initialData = null }) {
   const [name, setName] = useState(initialData?.name ?? "");
   const [email, setEmail] = useState(initialData?.email ?? "");
-  const [interns, setInterns] = useState(initialData?.interns ?? "");
+  const [contact, setContact] = useState(initialData?.contact ?? "");
   const [status, setStatus] = useState(initialData?.status ?? "Active");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const emailRegex = /^[^\s@]+@[^\s@]+\.com$/;
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const contactRegex = /^[0-9]{10}$/;
 
-  const submit = () => {
-    if (!name) {
+  const submit = async () => {
+    const trimmedName = name.trim();
+    const trimmedEmail = email.trim();
+    const digitsOnlyContact = contact.replace(/\D/g, ""); // remove non-digit chars
+
+    if (!trimmedName) {
       setError("Name is required");
       return;
     }
 
-    if (!emailRegex.test(email)) {
-      setError("Enter a valid email (example@gmail.com)");
+    if (!emailRegex.test(trimmedEmail)) {
+      setError("Enter a valid email");
+      return;
+    }
+
+    if (!contactRegex.test(digitsOnlyContact)) {
+      setError("Enter a valid 10-digit contact number");
       return;
     }
 
     setError("");
-    onAdd({ name, email, interns: Number(interns) || 0, status });
+    setLoading(true);
+
+    try {
+      const response = await fetch("http://localhost:5000/api/mentors", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: trimmedName,
+          email: trimmedEmail,
+          contact: digitsOnlyContact,
+          status,
+        }),
+      });
+
+      const data = await response.json();
+
+      console.log("Backend response:", data, response.status); // for debugging
+
+      if (!response.ok) {
+        // Show backend error directly
+        setError(data.error || "Failed to add mentor");
+        setLoading(false);
+        return;
+      }
+
+      onAdd(data); // update parent state
+      setLoading(false);
+      onClose(); // close modal
+    } catch (err) {
+      console.error("Network or server error:", err);
+      setError("Server error. Try again.");
+      setLoading(false);
+    }
   };
 
   return (
@@ -48,10 +91,14 @@ export default function AddMentorModal({ onAdd, onClose, initialData = null }) {
 
         <input
           className="border w-full p-2"
-          placeholder="Assigned interns (number)"
-          value={interns}
-          onChange={(e) => setInterns(e.target.value)}
-          type="number"
+          placeholder="Contact Number"
+          value={contact}
+          onChange={(e) => {
+            // Only digits, max 10 characters
+            const value = e.target.value.replace(/\D/g, "");
+            setContact(value.slice(0, 10));
+          }}
+          type="tel"
         />
 
         <select
@@ -63,17 +110,18 @@ export default function AddMentorModal({ onAdd, onClose, initialData = null }) {
           <option>Inactive</option>
         </select>
 
-        {error && (
-          <p className="text-red-500 text-sm">{error}</p>
-        )}
+        {error && <p className="text-red-500 text-sm">{error}</p>}
 
         <div className="flex justify-end gap-3 pt-2">
-          <button onClick={onClose}>Cancel</button>
+          <button onClick={onClose} disabled={loading}>
+            Cancel
+          </button>
           <button
             onClick={submit}
             className="bg-blue-600 text-white px-4 py-2 rounded"
+            disabled={loading}
           >
-            {initialData ? "Save" : "Add"}
+            {loading ? "Saving..." : initialData ? "Save" : "Add"}
           </button>
         </div>
       </div>

@@ -6,7 +6,6 @@ import { SiGoogleanalytics } from "react-icons/si";
 import { useState } from "react";
 import { IoClose } from "react-icons/io5";
 import logo from "../../../assets/c.png";
-import { FiSettings } from "react-icons/fi";
 import { LuLogOut } from "react-icons/lu";
 import { Building2, Columns3Cog, PanelTop, GraduationCap } from "lucide-react";
 import { MdOutlineSubscriptions } from "react-icons/md";
@@ -103,16 +102,6 @@ const Sidebar = ({ onLogout, active, setActive, sidebarOpen, setSidebarOpen }) =
         </nav>
 
         <div className="p-4 border-t font-[Poppins] border-white/10">
-          <a
-            href="#"
-            className="flex items-center rounded w-[204px] h-[44px] px-[16px] hover:bg-[#FFA138]"
-          >
-            <FiSettings className="h-[18px] w-[18px]" />
-            <span className="p-2 text-white font-[poppins] font-[400]">
-              Settings
-            </span>
-          </a>
-
           <button
             type="button"
             onClick={(e) => {

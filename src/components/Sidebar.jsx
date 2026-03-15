@@ -102,6 +102,7 @@ const Sidebar = ({ active, setActive, sidebarOpen, setSidebarOpen, onLogout }) =
 
         {/* Bottom Actions */}
         <div className="p-4 border-t font-[Poppins] border-white/10">
+          {/*
           <a
             href="#"
             className="flex items-center rounded w-full h-[44px] px-[16px] hover:bg-[#FFA138]"
@@ -109,6 +110,7 @@ const Sidebar = ({ active, setActive, sidebarOpen, setSidebarOpen, onLogout }) =
             <FiSettings className="h-[18px] w-[18px] " />
             <p className="p-2 text-white font-[poppins] font-[400] ">Settings</p>
           </a>
+          */}
 
           <button
             onClick={() => onLogout && onLogout()}
