@@ -1,22 +1,25 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
-import { Bell, Plus, Search, Filter, Eye, Trash2 } from "lucide-react";
+import { Plus, Search, Filter, Eye, Trash2, MoreVertical } from "lucide-react";
 import AddInternModal from "./AddInternModal";
 
 export default function InternsPage() {
   const [interns, setInterns] = useState([]);
+  const [mentors, setMentors] = useState([]);
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("All");
   const [filterOpen, setFilterOpen] = useState(false);
   const [page, setPage] = useState(1);
   const [viewIntern, setViewIntern] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
+  const [openMentorDropdown, setOpenMentorDropdown] = useState(null);
 
   const ITEMS_PER_PAGE = 5;
 
   useEffect(() => {
     fetchInterns();
+    fetchMentors();
   }, []);
 
   const fetchInterns = async () => {
@@ -29,7 +32,16 @@ export default function InternsPage() {
     }
   };
 
-  // SEARCH + FILTER
+  const fetchMentors = async () => {
+    try {
+      const res = await fetch("http://localhost:5000/api/mentors");
+      const data = await res.json();
+      setMentors(data);
+    } catch (err) {
+      console.error("Error fetching mentors", err);
+    }
+  };
+
   const filteredInterns = useMemo(() => {
     return interns.filter((i) => {
       if (filterStatus !== "All" && i.status !== filterStatus) return false;
@@ -57,12 +69,10 @@ export default function InternsPage() {
     page * ITEMS_PER_PAGE
   );
 
-  // DELETE INTERN
   const handleDelete = async (id) => {
     const confirmed = window.confirm(
       "Are you sure you want to delete this intern?"
     );
-
     if (!confirmed) return;
 
     try {
@@ -76,7 +86,6 @@ export default function InternsPage() {
     }
   };
 
-  // UPDATE STATUS
   const handleStatusChange = async (id, newStatus) => {
     setInterns((prev) =>
       prev.map((i) => (i._id === id ? { ...i, status: newStatus } : i))
@@ -90,6 +99,24 @@ export default function InternsPage() {
       });
     } catch (err) {
       console.error("Error updating status", err);
+    }
+  };
+
+  const handleMentorChange = async (internId, newMentor) => {
+    setInterns((prev) =>
+      prev.map((i) =>
+        i._id === internId ? { ...i, mentor: newMentor } : i
+      )
+    );
+
+    try {
+      await fetch(`http://localhost:5000/api/interns/${internId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mentor: newMentor }),
+      });
+    } catch (err) {
+      console.error("Error updating mentor", err);
     }
   };
 
@@ -113,16 +140,12 @@ export default function InternsPage() {
             <Plus size={16} /> Add Intern
           </button>
 
-          {/* Bell icon removed */}
-          {/* <Bell size={20} className="text-gray-400" /> */}
-
           <div className="h-9 w-9 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">
             SI
           </div>
         </div>
       </div>
 
-      {/* MAIN */}
       <main className="p-6">
 
         {/* SEARCH + FILTER */}
@@ -130,7 +153,6 @@ export default function InternsPage() {
 
           <div className="flex items-center gap-2 bg-white border rounded-xl px-4 py-2 flex-1">
             <Search size={18} className="text-gray-400" />
-
             <input
               type="text"
               value={search}
@@ -144,7 +166,6 @@ export default function InternsPage() {
           </div>
 
           <div className="relative">
-
             <button
               onClick={() => setFilterOpen((p) => !p)}
               className="bg-white border px-4 py-2 rounded-xl flex items-center gap-2 text-sm text-gray-600"
@@ -170,16 +191,12 @@ export default function InternsPage() {
                 ))}
               </div>
             )}
-
           </div>
-
         </div>
 
         {/* TABLE */}
         <div className="bg-white rounded-xl border overflow-hidden">
-
           <table className="w-full text-sm">
-
             <thead className="bg-gray-50 text-gray-400">
               <tr>
                 <th className="p-4 text-left">Intern</th>
@@ -189,12 +206,10 @@ export default function InternsPage() {
             </thead>
 
             <tbody className="divide-y">
-
               {paginatedInterns.map((i) => (
                 <tr key={i._id} className="hover:bg-gray-50">
 
                   <td className="p-4 flex items-center gap-3">
-
                     <div className="h-9 w-9 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-semibold">
                       {i.name?.charAt(0).toUpperCase()}
                     </div>
@@ -203,14 +218,13 @@ export default function InternsPage() {
                       <p className="font-semibold">{i.name}</p>
                       <p className="text-xs text-gray-400">{i.email}</p>
 
+                      {/* ✅ COLORED STATUS */}
                       <select
-                        className={`mt-1 text-xs rounded px-2 py-1 border ${
-                          i.status === "Active"
-                            ? "bg-green-100 text-green-800"
-                            : i.status === "Inactive"
-                            ? "bg-red-100 text-red-800"
-                            : "bg-blue-100 text-blue-800"
-                        }`}
+                        className={`mt-1 text-xs rounded px-2 py-1 border font-semibold
+                          ${i.status === "Active" ? "text-green-600 bg-green-50 border-green-200" : ""}
+                          ${i.status === "Inactive" ? "text-red-600 bg-red-50 border-red-200" : ""}
+                          ${i.status === "Completed" ? "text-blue-600 bg-blue-50 border-blue-200" : ""}
+                        `}
                         value={i.status}
                         onChange={(e) =>
                           handleStatusChange(i._id, e.target.value)
@@ -220,15 +234,15 @@ export default function InternsPage() {
                         <option value="Inactive">Inactive</option>
                         <option value="Completed">Completed</option>
                       </select>
-                    </div>
 
+                    </div>
                   </td>
 
                   <td className="p-4">
                     {new Date(i.joinedDate).toLocaleDateString()}
                   </td>
 
-                  <td className="p-4 text-center flex justify-center gap-4">
+                  <td className="p-4 text-center flex justify-center gap-4 relative">
 
                     <Eye
                       size={18}
@@ -242,17 +256,57 @@ export default function InternsPage() {
                       onClick={() => handleDelete(i._id)}
                     />
 
-                  </td>
+                    <div className="relative">
+                      <MoreVertical
+                        size={18}
+                        className="cursor-pointer text-gray-400 hover:text-gray-600"
+                        onClick={() =>
+                          setOpenMentorDropdown(
+                            openMentorDropdown === i._id ? null : i._id
+                          )
+                        }
+                      />
 
+                      {openMentorDropdown === i._id && (
+                        <div className="absolute right-0 mt-2 w-48 bg-white border rounded-xl shadow z-50 p-2">
+                          <div className="text-xs text-gray-500 mb-1 px-2">
+                            Current Mentor
+                          </div>
+
+                          <div className="px-2 py-1 text-sm font-medium bg-gray-100 rounded mb-2">
+                            {i.mentor || "Not Assigned"}
+                          </div>
+
+                          <div className="text-xs text-gray-500 mb-1 px-2">
+                            Assign New Mentor
+                          </div>
+
+                          {mentors
+                            .filter((m) => m.name !== i.mentor)
+                            .map((m) => (
+                              <div
+                                key={m._id}
+                                onClick={() => {
+                                  handleMentorChange(i._id, m.name);
+                                  setOpenMentorDropdown(null);
+                                }}
+                                className="px-2 py-1 text-sm hover:bg-gray-100 cursor-pointer rounded"
+                              >
+                                {m.name}
+                              </div>
+                            ))}
+                        </div>
+                      )}
+                    </div>
+
+                  </td>
                 </tr>
               ))}
-
             </tbody>
           </table>
 
           {/* PAGINATION */}
           <div className="flex justify-between items-center p-4 text-sm">
-
             <button
               disabled={page === 1}
               onClick={() => setPage(page - 1)}
@@ -272,7 +326,6 @@ export default function InternsPage() {
             >
               Next
             </button>
-
           </div>
         </div>
       </main>
@@ -280,9 +333,7 @@ export default function InternsPage() {
       {/* VIEW MODAL */}
       {viewIntern && (
         <div className="fixed inset-0 bg-black/30 flex items-center justify-center">
-
           <div className="bg-white p-6 rounded-xl w-96 space-y-3">
-
             <h2 className="font-bold text-lg">Intern Details</h2>
 
             <p><b>Name:</b> {viewIntern.name}</p>
@@ -301,7 +352,6 @@ export default function InternsPage() {
                 Close
               </button>
             </div>
-
           </div>
         </div>
       )}

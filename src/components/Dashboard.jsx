@@ -1,7 +1,7 @@
 import React from 'react';
 import { Plus, CheckSquare, Bell, Eye, Users, Edit, UserPlus, UserCheck, ClipboardList, Award, GraduationCap, Trash2 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
 import { AppStateContext } from '../context/AppState';
 
 import AddInternModal from './AddInternModal';
@@ -19,10 +19,46 @@ const chartData = [
 
 const App = () => {
 
-  const { interns, mentors, addIntern, addMentor } = useContext(AppStateContext);
+  // ❌ removed mentors from context
+  const { addIntern, addMentor } = useContext(AppStateContext);
+
+  // ✅ backend states
+  const [interns, setInterns] = useState([]);
+  const [mentors, setMentors] = useState([]);
 
   const [openInternModal, setOpenInternModal] = useState(false);
   const [openMentorModal, setOpenMentorModal] = useState(false);
+
+  // ✅ fetch both APIs
+  useEffect(() => {
+    fetchInterns();
+    fetchMentors();
+  }, []);
+
+  const fetchInterns = async () => {
+    try {
+      const res = await fetch("http://localhost:5000/api/interns");
+      const data = await res.json();
+      setInterns(data);
+    } catch (err) {
+      console.error("Error fetching interns", err);
+    }
+  };
+
+  const fetchMentors = async () => {
+    try {
+      const res = await fetch("http://localhost:5000/api/mentors");
+      const data = await res.json();
+      setMentors(data);
+    } catch (err) {
+      console.error("Error fetching mentors", err);
+    }
+  };
+
+  // ✅ latest 2 interns
+  const recentInterns = [...interns]
+    .sort((a, b) => new Date(b.joinedDate) - new Date(a.joinedDate))
+    .slice(0, 2);
 
   const styles = {
     container: { display: 'flex', minHeight: '100vh', backgroundColor: '#f8fafc', fontFamily: 'Poppins, sans-serif' },
@@ -30,7 +66,6 @@ const App = () => {
     content: { padding: '32px', display: 'flex', flexDirection: 'column', gap: '32px' },
     statsGrid: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' },
     card: { backgroundColor: 'white', padding: '20px', borderRadius: '16px', border: '1px solid #f1f5f9', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' },
-    sectionGrid: { display: 'grid', gridTemplateColumns: '1fr', gap: '24px' },
   };
 
   return (
@@ -62,14 +97,13 @@ const App = () => {
             <StatCard icon={<GraduationCap color="#f59e0b" />} label="Active Mentors" value={mentors.length} bg="#fffbeb" />
           </div>
 
-          {/* ATTENDANCE CHART */}
+          {/* CHART */}
           <div style={styles.card}>
             <h3 className="mb-5 font-semibold">Attendance Trend</h3>
 
             <div style={{ height: '250px' }}>
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={chartData}>
-
                   <defs>
                     <linearGradient id="colorAttend" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.2} />
@@ -89,16 +123,14 @@ const App = () => {
                     strokeWidth={3}
                     fill="url(#colorAttend)"
                   />
-
                 </AreaChart>
               </ResponsiveContainer>
             </div>
           </div>
 
-          {/* TABLE + QUICK ACTION */}
+          {/* TABLE */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-            {/* INTERN TABLE */}
             <div className="lg:col-span-2 bg-white rounded-2xl border shadow-sm overflow-hidden">
 
               <h3 className="p-5 font-semibold text-slate-800">
@@ -106,7 +138,6 @@ const App = () => {
               </h3>
 
               <table className="w-full text-sm">
-
                 <thead className="text-slate-400 border-b">
                   <tr>
                     <th className="text-left px-5 py-3">INTERN NAME</th>
@@ -118,23 +149,18 @@ const App = () => {
 
                 <tbody>
 
-                  {interns.map((intern) => (
+                  {recentInterns.map((intern) => (
 
-                    <tr key={intern.id} className="border-t hover:bg-slate-50">
+                    <tr key={intern._id} className="border-t hover:bg-slate-50">
 
                       <td className="px-5 py-4">
-
                         <div className="flex items-center gap-3">
-
                           <div className="w-9 h-9 bg-slate-200 rounded-full" />
-
                           <div>
                             <p className="font-semibold text-slate-700">{intern.name}</p>
                             <p className="text-xs text-slate-400">{intern.email}</p>
                           </div>
-
                         </div>
-
                       </td>
 
                       <td className="text-center">
@@ -148,17 +174,11 @@ const App = () => {
                       </td>
 
                       <td className="text-center">
-
                         <div className="flex justify-center gap-4 text-slate-400">
-
                           <Eye size={16} className="cursor-pointer hover:text-slate-600" />
-
                           <Edit size={16} className="cursor-pointer hover:text-blue-500" />
-
                           <Trash2 size={16} className="cursor-pointer hover:text-red-500" />
-
                         </div>
-
                       </td>
 
                     </tr>
@@ -166,63 +186,42 @@ const App = () => {
                   ))}
 
                 </tbody>
-
               </table>
 
             </div>
 
             {/* QUICK ACTION */}
             <div className="bg-white rounded-2xl border p-5 shadow-sm h-fit">
-
-              <h3 className="font-semibold mb-5">
-                Quick Action
-              </h3>
+              <h3 className="font-semibold mb-5">Quick Action</h3>
 
               <div className="space-y-3">
-
-                <ActionBtn
-                  onClick={() => setOpenInternModal(true)}
-                  icon={<UserPlus size={18} />}
-                  text="Add Intern"
-                />
-
-                <ActionBtn
-                  onClick={() => setOpenMentorModal(true)}
-                  icon={<UserPlus size={18} />}
-                  text="Add Mentor"
-                />
-
-                <ActionBtn
-                  icon={<Award size={18} />}
-                  text="Generate Certificate"
-                />
-
+                <ActionBtn onClick={() => setOpenInternModal(true)} icon={<UserPlus size={18} />} text="Add Intern" />
+                <ActionBtn onClick={() => setOpenMentorModal(true)} icon={<UserPlus size={18} />} text="Add Mentor" />
+                <ActionBtn icon={<Award size={18} />} text="Generate Certificate" />
               </div>
-
             </div>
 
           </div>
 
         </main>
 
-        {/* INTERN MODAL */}
-
+        {/* MODALS */}
         {openInternModal && (
           <AddInternModal
             onAdd={(intern) => {
               addIntern(intern);
+              fetchInterns();
               setOpenInternModal(false);
             }}
             onClose={() => setOpenInternModal(false)}
           />
         )}
 
-        {/* MENTOR MODAL */}
-
         {openMentorModal && (
           <AddMentorModal
             onAdd={(mentor) => {
               addMentor(mentor);
+              fetchMentors(); // ✅ refresh mentors
               setOpenMentorModal(false);
             }}
             onClose={() => setOpenMentorModal(false)}
@@ -235,10 +234,7 @@ const App = () => {
 };
 
 const ActionBtn = ({ icon, text, onClick }) => (
-  <button
-    onClick={onClick}
-    className="w-full flex items-center justify-center gap-3 border rounded-xl py-3 font-semibold text-slate-600 hover:bg-slate-50"
-  >
+  <button onClick={onClick} className="w-full flex items-center justify-center gap-3 border rounded-xl py-3 font-semibold text-slate-600 hover:bg-slate-50">
     {icon} {text}
   </button>
 );
@@ -249,13 +245,8 @@ const StatCard = ({ icon, label, value, bg }) => (
       {icon}
     </div>
 
-    <p style={{ margin: 0, fontSize: '12px', color: '#64748b' }}>
-      {label}
-    </p>
-
-    <p style={{ margin: '5px 0 0 0', fontSize: '24px', fontWeight: 'bold', color: '#1e293b' }}>
-      {value}
-    </p>
+    <p style={{ margin: 0, fontSize: '12px', color: '#64748b' }}>{label}</p>
+    <p style={{ margin: '5px 0 0 0', fontSize: '24px', fontWeight: 'bold', color: '#1e293b' }}>{value}</p>
   </div>
 );
 

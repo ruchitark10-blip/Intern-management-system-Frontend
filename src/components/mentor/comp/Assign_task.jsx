@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { FiEye } from "react-icons/fi";
-import { Trash2, Search } from "lucide-react";
+import { Trash2, Search, Calendar } from "lucide-react";
 import { IoIosArrowDown } from "react-icons/io";
 
 const ITEMS_PER_PAGE = 6;
@@ -31,6 +31,51 @@ export default function Companies() {
   useEffect(() => {
     fetchTasks();
   }, []);
+
+  // --- UPDATED DATE HELPERS ---
+  const formatToDisplay = (dateStr) => {
+    if (!dateStr) return "N/A";
+    // Changes dd-mm-yyyy to dd/mm/yyyy for UI
+    return dateStr.replaceAll("-", "/"); 
+  };
+
+  const formatToISO = (dateStr) => {
+    if (!dateStr) return "";
+    const parts = dateStr.split("-");
+    if (parts.length === 3) {
+      // Create date object from dd-mm-yyyy
+      const date = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
+      // Add 1 day so the assignDate itself is NOT selectable
+      date.setDate(date.getDate() + 1);
+      
+      const yyyy = date.getFullYear();
+      const mm = String(date.getMonth() + 1).padStart(2, '0');
+      const dd = String(date.getDate()).padStart(2, '0');
+      return `${yyyy}-${mm}-${dd}`;
+    }
+    return "";
+  };
+
+  const handleUpdateDeadline = async (taskId, newDateISO) => {
+    const parts = newDateISO.split("-");
+    const formattedDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
+
+    try {
+      const res = await fetch(`http://localhost:5000/api/tasks/${taskId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ deadline: formattedDate }),
+      });
+
+      if (res.ok) {
+        setTasks((prev) =>
+          prev.map((t) => (t._id === taskId ? { ...t, deadline: formattedDate } : t))
+        );
+      }
+    } catch (err) {
+      console.error("Update error:", err);
+    }
+  };
 
   const handleUpdateStatus = async (taskId, newStatus) => {
     try {
@@ -146,9 +191,20 @@ export default function Companies() {
                 <td className="py-4 ps-4 font-semibold text-gray-700">{item.taskName}</td>
                 <td className="text-center text-gray-600">{item.internId?.name || "N/A"}</td>
                 <td className="text-center">
-                  <span className="px-3 py-1 rounded-full text-[11px] font-bold bg-green-50 text-green-600 border border-green-100">
-                    {item.deadline}
-                  </span>
+                  <div className="flex items-center justify-center gap-2">
+                    <span className="px-3 py-1 rounded-full text-[11px] font-bold bg-green-50 text-green-600 border border-green-100">
+                      {formatToDisplay(item.deadline)}
+                    </span>
+                    <div className="relative cursor-pointer text-gray-400 hover:text-blue-600">
+                      <Calendar size={14} />
+                      <input 
+                        type="date"
+                        min={formatToISO(item.assignDate)}
+                        className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                        onChange={(e) => handleUpdateDeadline(item._id, e.target.value)}
+                      />
+                    </div>
+                  </div>
                 </td>
                 <td className="text-center">
                   <select
@@ -207,8 +263,8 @@ export default function Companies() {
             <div className="space-y-4">
               <DetailRow label="Intern Name" value={selectedTask.internId?.name} />
               <DetailRow label="Task Title" value={selectedTask.taskName} />
-              <DetailRow label="Assign Date" value={selectedTask.assignDate} />
-              <DetailRow label="Deadline" value={selectedTask.deadline} />
+              <DetailRow label="Assign Date" value={formatToDisplay(selectedTask.assignDate)} />
+              <DetailRow label="Deadline" value={formatToDisplay(selectedTask.deadline)} />
               <DetailRow label="Current Status" value={selectedTask.status} customColor={getStatusColor(selectedTask.status)} />
             </div>
             <button 
