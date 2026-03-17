@@ -7,16 +7,17 @@ const ITEMS_PER_PAGE = 10;
 export default function MentorsTable() {
   const [mentors, setMentors] = useState([]);
   const [page, setPage] = useState(1);
-
   const [search, setSearch] = useState("");
   const [filterOpen, setFilterOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState("All");
 
   const [editMentor, setEditMentor] = useState(null);
   const [addOpen, setAddOpen] = useState(false);
+  const [viewMentor, setViewMentor] = useState(null);
+
   const [loading, setLoading] = useState(false);
 
-  // 🔄 Fetch mentors from backend
+  // FETCH MENTORS
   const fetchMentors = async () => {
     try {
       setLoading(true);
@@ -34,17 +35,18 @@ export default function MentorsTable() {
     fetchMentors();
   }, []);
 
-  /* 🔍 SEARCH + FILTER */
+  // SEARCH + FILTER
   const filteredMentors = useMemo(() => {
     return mentors.filter((m) => {
       if (statusFilter !== "All" && m.status !== statusFilter) return false;
       if (!search) return true;
 
       const s = search.toLowerCase();
+
       return (
         m.name.toLowerCase().includes(s) ||
         m.email.toLowerCase().includes(s) ||
-        m.contact.includes(search) // backend field is contact
+        m.contact.includes(search)
       );
     });
   }, [mentors, search, statusFilter]);
@@ -56,13 +58,13 @@ export default function MentorsTable() {
     page * ITEMS_PER_PAGE
   );
 
-  /* ➕ ADD */
+  // ADD
   const handleAdd = (mentor) => {
     setMentors((prev) => [...prev, mentor]);
     setAddOpen(false);
   };
 
-  /* ✏️ UPDATE */
+  // UPDATE
   const handleUpdate = (updatedMentor) => {
     setMentors((prev) =>
       prev.map((m) => (m._id === updatedMentor._id ? updatedMentor : m))
@@ -70,25 +72,55 @@ export default function MentorsTable() {
     setEditMentor(null);
   };
 
-  /* 🗑 DELETE */
+  // DELETE
   const handleDelete = async (id) => {
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this mentor?"
+    );
+
+    if (!confirmDelete) return;
+
     try {
       const res = await fetch(`http://localhost:5000/api/mentors/${id}`, {
         method: "DELETE",
       });
-      if (res.ok) setMentors((prev) => prev.filter((m) => m._id !== id));
+
+      const data = await res.json();
+
+      if (res.ok) {
+        setMentors((prev) => prev.filter((m) => m._id !== id));
+        alert("Mentor deleted successfully");
+      } else {
+        alert(data.message || "Failed to delete mentor");
+      }
     } catch (err) {
       console.error("Error deleting mentor:", err);
+      alert("Server error while deleting mentor");
     }
   };
 
-  /* 👁 VIEW */
-  const handleView = (mentor) => {
-    alert(`Mentor: ${mentor.name}\nEmail: ${mentor.email}\nPhone: ${mentor.contact}`);
+  // STATUS UPDATE
+  const handleStatusChange = async (id, newStatus) => {
+    try {
+      await fetch(`http://localhost:5000/api/mentors/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      setMentors((prev) =>
+        prev.map((m) => (m._id === id ? { ...m, status: newStatus } : m))
+      );
+    } catch (err) {
+      console.error("Error updating status:", err);
+    }
   };
 
   return (
     <div className="bg-white rounded-xl overflow-hidden">
+
       {/* HEADER */}
       <div className="flex flex-col lg:flex-row border-b justify-between items-start lg:items-center py-[14px] px-4 gap-4">
         <div>
@@ -103,12 +135,15 @@ export default function MentorsTable() {
           >
             <Plus size={16} /> Add Mentor
           </button>
-          <Bell size={20} className="text-gray-400" />
+
+          {/* Bell icon removed */}
+          {/* <Bell size={20} className="text-gray-400" /> */}
         </div>
       </div>
 
       {/* SEARCH + FILTER */}
       <div className="p-4 flex items-center gap-3 mb-6">
+
         <div className="flex items-center gap-2 bg-white border rounded-xl px-4 py-2 flex-1">
           <Search size={18} className="text-gray-400" />
           <input
@@ -132,7 +167,7 @@ export default function MentorsTable() {
 
           {filterOpen && (
             <div className="absolute right-0 mt-2 w-40 bg-white border rounded-xl shadow-lg z-50">
-              {["All", "Active", "Inactive"].map((s) => (
+              {["All", "Active", "Inactive", "Completed"].map((s) => (
                 <div
                   key={s}
                   onClick={() => {
@@ -148,6 +183,7 @@ export default function MentorsTable() {
             </div>
           )}
         </div>
+
       </div>
 
       {/* TABLE */}
@@ -164,10 +200,12 @@ export default function MentorsTable() {
         <tbody className="divide-y">
           {paginatedMentors.map((m) => (
             <tr key={m._id} className="hover:bg-gray-50">
+
               <td className="p-4 flex gap-3 items-center">
                 <div className="h-9 w-9 rounded-full bg-gray-200 flex items-center justify-center font-bold">
                   {m.name[0]}
                 </div>
+
                 <div>
                   <p className="font-semibold">{m.name}</p>
                   <p className="text-xs text-gray-400">{m.email}</p>
@@ -177,32 +215,51 @@ export default function MentorsTable() {
               <td className="p-4 text-center">{m.contact}</td>
 
               <td className="p-4 text-center">
-                <span
-                  className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                    m.status === "Active"
-                      ? "bg-green-100 text-green-600"
-                      : "bg-red-100 text-red-600"
-                  }`}
+                <select
+                  value={m.status}
+                  onChange={(e) =>
+                    handleStatusChange(m._id, e.target.value)
+                  }
+                  className={`px-3 py-1 rounded-full text-xs font-semibold border outline-none
+                    ${
+                      m.status === "Active"
+                        ? "bg-green-100 text-green-700 border-green-300"
+                        : m.status === "Inactive"
+                        ? "bg-red-100 text-red-700 border-red-300"
+                        : "bg-blue-100 text-blue-700 border-blue-300"
+                    }
+                  `}
                 >
-                  {m.status}
-                </span>
+                  <option value="Active">Active</option>
+                  <option value="Inactive">Inactive</option>
+                  <option value="Completed">Completed</option>
+                </select>
               </td>
 
               <td className="p-4 text-center">
                 <div className="flex justify-center gap-3">
-                  <Eye size={16} onClick={() => handleView(m)} />
+
+                  <Eye
+                    size={16}
+                    className="cursor-pointer"
+                    onClick={() => setViewMentor(m)}
+                  />
+
                   <Edit
                     size={16}
                     className="text-blue-500 cursor-pointer"
                     onClick={() => setEditMentor(m)}
                   />
+
                   <Trash2
                     size={16}
                     className="text-red-500 cursor-pointer"
                     onClick={() => handleDelete(m._id)}
                   />
+
                 </div>
               </td>
+
             </tr>
           ))}
         </tbody>
@@ -210,6 +267,7 @@ export default function MentorsTable() {
 
       {/* PAGINATION */}
       <div className="flex justify-between items-center p-4 text-sm">
+
         <button
           disabled={page === 1}
           onClick={() => setPage(page - 1)}
@@ -223,16 +281,22 @@ export default function MentorsTable() {
         </span>
 
         <button
-          disabled={page === totalPages}
+          disabled={page === totalPages || totalPages === 0}
           onClick={() => setPage(page + 1)}
           className="px-4 py-1.5 rounded-lg border"
         >
           Next
         </button>
+
       </div>
 
       {/* ADD MODAL */}
-      {addOpen && <AddMentorModal onAdd={handleAdd} onClose={() => setAddOpen(false)} />}
+      {addOpen && (
+        <AddMentorModal
+          onAdd={handleAdd}
+          onClose={() => setAddOpen(false)}
+        />
+      )}
 
       {/* EDIT MODAL */}
       {editMentor && (
@@ -241,6 +305,31 @@ export default function MentorsTable() {
           onAdd={(data) => handleUpdate(data)}
           onClose={() => setEditMentor(null)}
         />
+      )}
+
+      {/* VIEW MODAL */}
+      {viewMentor && (
+        <div className="fixed inset-0 bg-black/30 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-xl w-96 space-y-3">
+
+            <h2 className="font-bold text-lg">Mentor Details</h2>
+
+            <p><b>Name:</b> {viewMentor.name}</p>
+            <p><b>Email:</b> {viewMentor.email}</p>
+            <p><b>Contact:</b> {viewMentor.contact}</p>
+            <p><b>Status:</b> {viewMentor.status}</p>
+
+            <div className="flex justify-end">
+              <button
+                onClick={() => setViewMentor(null)}
+                className="px-4 py-2 border rounded"
+              >
+                Close
+              </button>
+            </div>
+
+          </div>
+        </div>
       )}
 
       {loading && <p className="p-4 text-gray-500">Loading mentors...</p>}

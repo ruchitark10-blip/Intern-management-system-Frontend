@@ -27,14 +27,13 @@ const Sidebar = ({ onLogout, active, setActive, sidebarOpen, setSidebarOpen }) =
       icon: PanelTop,
     },
 
-    /* HIDDEN: Tasks Section
+    // Tasks Section
     {
       name: "Tasks",
       icon: GrTask,
     },
-    */
 
-    /* HIDDEN: Feedback Section
+    /* Feedback Section hidden
     {
       name: "Feedback",
       icon: BsChatSquareQuote,

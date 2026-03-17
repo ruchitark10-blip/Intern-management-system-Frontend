@@ -1,11 +1,27 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
-const AddTaskModal = ({ isOpen, onClose, onAddTask }) => {
+const AddTaskModal = ({ isOpen, onClose, onAddTask, intern }) => {
+  // Get current date in YYYY-MM-DD format for HTML input logic
+  const today = new Date().toISOString().split("T")[0];
+
   const [formData, setFormData] = useState({
     taskName: "",
-    internName: "",
-    taskDescription: ""
+    taskDescription: "",
+    assignDate: today, 
+    deadline: ""
   });
+
+  // Reset form when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setFormData({
+        taskName: "",
+        taskDescription: "",
+        assignDate: today,
+        deadline: ""
+      });
+    }
+  }, [isOpen, today]);
 
   if (!isOpen) return null;
 
@@ -16,74 +32,101 @@ const AddTaskModal = ({ isOpen, onClose, onAddTask }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    const newTask = {
-      name: formData.internName,
-      email: `${formData.internName.toLowerCase().replace(/\s+/g, ".")}@company.com`,
-      avatar: "https://i.pravatar.cc/40",
-      task: formData.taskName,
-      status: "Pending",
-      date: new Date().toLocaleDateString(),
+    // Helper to format YYYY-MM-DD to DD-MM-YYYY for your database/view
+    const formatToCustomDate = (dateStr) => {
+      if (!dateStr) return "";
+      const [y, m, d] = dateStr.split("-");
+      return `${d}-${m}-${y}`;
     };
 
-    onAddTask(newTask);
-    onClose();
+    const taskPayload = {
+      internId: intern?._id, // Linked to the specific row
+      taskName: formData.taskName,
+      description: formData.taskDescription,
+      assignDate: formatToCustomDate(formData.assignDate),
+      deadline: formatToCustomDate(formData.deadline),
+      status: "Pending"
+    };
 
-    setFormData({
-      taskName: "",
-      internName: "",
-      taskDescription: ""
-    });
+    onAddTask(taskPayload);
+    onClose();
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-      <div className="bg-white w-full max-w-md p-6 rounded-lg shadow-lg">
-
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-semibold text-gray-800">
-            Assign New Task
-          </h2>
-          <button onClick={onClose}>✕</button>
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 font-[Poppins]">
+      <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden border">
+        
+        {/* Header - Auto-filled from row */}
+        <div className="flex justify-between items-center px-6 py-4 border-b bg-gray-50">
+          <h2 className="text-lg font-bold text-[#1F2A5B]">Assign Task to {intern?.name}</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors text-xl">✕</button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="p-6 space-y-5">
+          
+          {/* Task Name */}
+          <div>
+            <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Task Name</label>
+            <input
+              type="text"
+              name="taskName"
+              value={formData.taskName}
+              onChange={handleChange}
+              className="w-full border border-gray-200 p-3 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+              required
+            />
+          </div>
 
-          <input
-            type="text"
-            name="taskName"
-            placeholder="Task Name"
-            value={formData.taskName}
-            onChange={handleChange}
-            className="w-full border p-2 rounded"
-            required
-          />
+          {/* Task Description */}
+          <div>
+            <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Task Description</label>
+            <textarea
+              name="taskDescription"
+              value={formData.taskDescription}
+              onChange={handleChange}
+              className="w-full border border-gray-200 p-3 rounded-xl h-24 text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none"
+              required
+            />
+          </div>
 
-          <input
-            type="text"
-            name="internName"
-            placeholder="Intern Name"
-            value={formData.internName}
-            onChange={handleChange}
-            className="w-full border p-2 rounded"
-            required
-          />
+          {/* Date Picker Grid */}
+          <div className="grid grid-cols-2 gap-4">
+            {/* Assign Date - Accepts current and future dates only */}
+            <div>
+              <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Assign Date</label>
+              <input
+                type="date"
+                name="assignDate"
+                value={formData.assignDate}
+                min={today} 
+                onChange={handleChange}
+                className="w-full border border-gray-200 p-3 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 bg-white"
+                required
+              />
+            </div>
 
-          <textarea
-            name="taskDescription"
-            placeholder="Task Description"
-            value={formData.taskDescription}
-            onChange={handleChange}
-            className="w-full border p-2 rounded h-24"
-            required
-          />
+            {/* Deadline Date - Accepts only future dates relative to Assign Date */}
+            <div>
+              <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Deadline</label>
+              <input
+                type="date"
+                name="deadline"
+                value={formData.deadline}
+                min={formData.assignDate || today} 
+                onChange={handleChange}
+                className="w-full border border-gray-200 p-3 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 bg-white"
+                required
+              />
+            </div>
+          </div>
 
+          {/* Submit Button */}
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
+            className="w-full bg-[#2563EB] text-white py-3.5 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-lg active:scale-[0.98] mt-2"
           >
             Assign Task
           </button>
-
         </form>
       </div>
     </div>

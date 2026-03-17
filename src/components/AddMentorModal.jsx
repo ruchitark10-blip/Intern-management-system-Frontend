@@ -5,6 +5,7 @@ export default function AddMentorModal({ onAdd, onClose, initialData = null }) {
   const [email, setEmail] = useState(initialData?.email ?? "");
   const [contact, setContact] = useState(initialData?.contact ?? "");
   const [status, setStatus] = useState(initialData?.status ?? "Active");
+  const [joinedDate, setJoinedDate] = useState(initialData?.joinedDate ?? "");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -14,7 +15,7 @@ export default function AddMentorModal({ onAdd, onClose, initialData = null }) {
   const submit = async () => {
     const trimmedName = name.trim();
     const trimmedEmail = email.trim();
-    const digitsOnlyContact = contact.replace(/\D/g, ""); // remove non-digit chars
+    const digitsOnlyContact = contact.replace(/\D/g, "");
 
     if (!trimmedName) {
       setError("Name is required");
@@ -31,37 +32,65 @@ export default function AddMentorModal({ onAdd, onClose, initialData = null }) {
       return;
     }
 
+    if (!joinedDate) {
+      setError("Please select joined date");
+      return;
+    }
+
+    const year = new Date(joinedDate).getFullYear();
+
+    if (year !== 2026) {
+      setError("Joined date must be in the year 2026 only");
+      return;
+    }
+
     setError("");
     setLoading(true);
 
     try {
       const response = await fetch("http://localhost:5000/api/mentors", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json"
+        },
         body: JSON.stringify({
           name: trimmedName,
           email: trimmedEmail,
           contact: digitsOnlyContact,
           status,
-        }),
+          joinedDate
+        })
       });
 
       const data = await response.json();
 
-      console.log("Backend response:", data, response.status); // for debugging
-
       if (!response.ok) {
-        // Show backend error directly
-        setError(data.error || "Failed to add mentor");
+        setError(data.message || "Failed to add mentor");
         setLoading(false);
         return;
       }
 
-      onAdd(data); // update parent state
+      // ✅ Show generated password
+      alert(`Mentor Created Successfully!
+
+Email: ${data.email}
+Password: ${data.password}
+
+Please save this password.`);
+
+      onAdd(data);
+
+      setName("");
+      setEmail("");
+      setContact("");
+      setStatus("Active");
+      setJoinedDate("");
+
       setLoading(false);
-      onClose(); // close modal
+      onClose();
+
     } catch (err) {
-      console.error("Network or server error:", err);
+      console.error("Network error:", err);
       setError("Server error. Try again.");
       setLoading(false);
     }
@@ -94,11 +123,19 @@ export default function AddMentorModal({ onAdd, onClose, initialData = null }) {
           placeholder="Contact Number"
           value={contact}
           onChange={(e) => {
-            // Only digits, max 10 characters
             const value = e.target.value.replace(/\D/g, "");
             setContact(value.slice(0, 10));
           }}
           type="tel"
+        />
+
+        <input
+          type="date"
+          className="border w-full p-2"
+          value={joinedDate}
+          onChange={(e) => setJoinedDate(e.target.value)}
+          min="2026-01-01"
+          max="2026-12-31"
         />
 
         <select
@@ -116,6 +153,7 @@ export default function AddMentorModal({ onAdd, onClose, initialData = null }) {
           <button onClick={onClose} disabled={loading}>
             Cancel
           </button>
+
           <button
             onClick={submit}
             className="bg-blue-600 text-white px-4 py-2 rounded"
