@@ -7,7 +7,7 @@ import Tasks from "./comp/Tasks";
 import Attendance from "./comp/Attendance";
 
 
-function App({ onLogout }) {
+function App({ onLogout,email }) {
    const [active, setActive] = useState("Dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false); 
 
@@ -22,7 +22,7 @@ function App({ onLogout }) {
       case "Certificate":
         return <Certificate/>;
       default:
-        return <Dashboard />;
+        return <Dashboard iemail={email}/>;
     }
   };
 

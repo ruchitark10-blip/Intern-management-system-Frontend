@@ -25,12 +25,20 @@ const LoginScreen = ({ onLogin }) => {
 
       if (!res.ok) {
         alert(data.message || "Login failed");
+        console.log(data)
         setIsLoading(false);
         return;
       }
 
       // Send role & token to App.jsx
-      onLogin(data.role, data.token);
+      onLogin(data.role, data.token,email);
+//       onLogin({
+//   role: data.role,
+//   token: data.token,
+//   name: data.user.name,
+//   email: data.user.email
+// });
+      
 
     } catch (err) {
       console.error(err);

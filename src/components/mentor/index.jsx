@@ -5,20 +5,20 @@ import Assign_task from "./comp/Assign_task";
 import Sidebar from "./comp/Siderbar";
 import Review_submissions from "./comp/Review_submissions"
 
-function App({ onLogout }) {
+function App({ onLogout,email }) {
   const [active, setActive] = useState("Dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const renderPage = () => {
     switch (active) {
       case "Interns":
-        return <Interns />;
+        return <Interns memail={email}/>;
       case "Assign Task":
         return <Assign_task />;
       case "Review Submissions":
         return <Review_submissions />;
       default:
-        return <Dashboard />;
+        return <Dashboard memail={email}/>;
     }
   };
 

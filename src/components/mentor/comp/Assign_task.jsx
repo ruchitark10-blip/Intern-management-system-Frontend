@@ -132,7 +132,7 @@ export default function Companies() {
       {/* Header */}
       <div className="flex justify-between items-center border-b px-4 py-4 bg-white">
         <div>
-          <h1 className="text-xl sm:text-2xl font-semibold text-[#1F2A5B]">Dashboard</h1>
+          <h1 className="text-xl sm:text-2xl font-semibold text-[#1F2A5B]">Assign Task</h1>
           <p className="text-xs sm:text-sm text-[#1F2A5B]">Manage assigned tasks and statuses.</p>
         </div>
         <div className="h-8 w-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-bold">SI</div>
