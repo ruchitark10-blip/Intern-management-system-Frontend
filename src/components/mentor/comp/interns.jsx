@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import { Eye, Trash2, Search, Filter, ClipboardList } from "lucide-react";
 import AddTaskModal from "./AddTaskModal";
 
-export default function MentorInternTable() {
+export default function MentorInternTable({memail}) {
   const [data, setData] = useState([]); 
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
@@ -106,10 +106,10 @@ export default function MentorInternTable() {
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center border-b px-4 py-4 gap-4">
         <div>
           <h1 className="text-xl font-semibold text-[#1F2A5B]">Interns</h1>
-          <p className="text-sm text-gray-500">Manage all interns and track their progress.</p>
+          <p className="text-sm text-gray-500">Manage all interns and track their progress.{memail}</p>
         </div>
         <div className="flex items-center gap-4">
-          <div className="h-9 w-9 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold">SI</div>
+          <div className="h-9 w-9 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold"><p>{memail.substring(0, 2)}</p></div>
         </div>
       </div>
 

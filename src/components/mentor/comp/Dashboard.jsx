@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { Users, ClipboardList, ClipboardClock } from "lucide-react";
 import AddTaskModal from "./AddTaskModal";
 
-export default function Dashboard() {
+export default function Dashboard({memail}) {
   const stats = [
     { title: "Assigned Interns", value: 12, color: "bg-orange-100 text-orange-600", icon: Users },
     { title: "Tasks Assigned", value: 25, color: "bg-blue-100 text-blue-600", icon: ClipboardList },
@@ -16,6 +16,7 @@ export default function Dashboard() {
   const [selectedIntern, setSelectedIntern] = useState(null);
   const [viewIntern, setViewIntern] = useState(null);
 
+ 
   // FETCH INTERNS
   const fetchInterns = async () => {
     try {
@@ -77,10 +78,10 @@ export default function Dashboard() {
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center border-b px-4 py-4 gap-4">
         <div>
           <h1 className="text-xl sm:text-2xl font-semibold text-[#1F2A5B]">Dashboard</h1>
-          <p className="text-xs sm:text-sm text-[#1F2A5B]">Welcome back, Sarah. Here's the latest activity.</p>
+          <p className="text-xs sm:text-sm text-[#1F2A5B]">Welcome back, {memail}</p>
         </div>
         <div className="flex items-center gap-4 ml-auto">
-          <div className="h-8 w-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm">SI</div>
+          <div className="h-8 w-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm"><p>{memail.substring(0, 2)}</p></div>
         </div>
       </div>
 

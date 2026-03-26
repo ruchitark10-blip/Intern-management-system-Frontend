@@ -17,15 +17,22 @@ const chartData = [
   { name: 'Sun', attendance: 60 },
 ];
 
-const App = () => {
+const App = ({email}) => {
 
   // ❌ removed mentors from context
   const { addIntern, addMentor } = useContext(AppStateContext);
+<<<<<<< HEAD
 
   // ✅ backend states
   const [interns, setInterns] = useState([]);
   const [mentors, setMentors] = useState([]);
+=======
+>>>>>>> kan-frontend
 
+  // ✅ backend states
+  const [interns, setInterns] = useState([]);
+  const [mentors, setMentors] = useState([]);
+  const name = localStorage.getItem("name"); //chngable
   const [openInternModal, setOpenInternModal] = useState(false);
   const [openMentorModal, setOpenMentorModal] = useState(false);
 
@@ -76,13 +83,13 @@ const App = () => {
         <div className="flex flex-col lg:flex-row border-b justify-between items-start lg:items-center py-[14px] px-4 gap-4 bg-white">
           <div>
             <h1 className="text-lg font-semibold text-gray-800">Dashboard</h1>
-            <p className="text-md text-gray-500">Welcome back, Sarah.</p>
+            <p className="text-md text-gray-500">Welcome back, {email}.</p>
           </div>
 
           <div className="flex items-center gap-4">
             <Bell className="text-gray-400 cursor-pointer hover:text-gray-600" size={20} />
             <div className="h-9 w-9 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
-              SI
+              <p>{email.substring(0, 2)}</p>
             </div>
           </div>
         </div>
