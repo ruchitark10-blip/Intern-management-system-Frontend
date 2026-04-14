@@ -42,15 +42,15 @@ function App() {
   const renderPage = () => {
     switch (active) {
       case "Mentors":
-        return <Mentors  />;
+        return <Mentors email={userEmail}/>;
       case "Interns":
-        return <Interns  />;
+        return <Interns  email={userEmail}/>;
       case "Tasks":
-        return <Tasks />;
+        return <Tasks email={userEmail}/>;
       case "Attendance":
-        return <Attendance />;
+        return <Attendance email={userEmail}/>;
       case "Reports":
-        return <Reports />;
+        return <Reports email={userEmail}/>;
       default:
         return <Dashboard email={userEmail} />; // 🔁 UPDATED (email pass)
     }

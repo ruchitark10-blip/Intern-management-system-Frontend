@@ -14,9 +14,9 @@ function App({ onLogout,email }) {
       case "Interns":
         return <Interns memail={email}/>;
       case "Assign Task":
-        return <Assign_task />;
+        return <Assign_task memail={email}/>;
       case "Review Submissions":
-        return <Review_submissions />;
+        return <Review_submissions memail={email}/>;
       default:
         return <Dashboard memail={email}/>;
     }

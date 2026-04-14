@@ -7,8 +7,12 @@ import { IoIosArrowDown } from "react-icons/io";
 
 const ITEMS_PER_PAGE = 6;
 
-export default function Companies() {
+export default function Companies({ memail }) {
   const [tasks, setTasks] = useState([]);
+  const [allTasks, setAllTasks] = useState([]); 
+  const [interns, setInterns] = useState([]);   
+  const [mentorName, setMentorName] = useState(""); 
+
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [statusOpen, setStatusOpen] = useState(false);
@@ -16,11 +20,40 @@ export default function Companies() {
   const [filterStatus, setFilterStatus] = useState("All Status");
   const [selectedTask, setSelectedTask] = useState(null);
 
+  // FETCH MENTOR
+  const fetchMentor = async () => {
+    try {
+      const res = await fetch("http://localhost:5000/api/mentors");
+      const data = await res.json();
+      const match = data.find(
+        (m) => m.email?.toLowerCase().trim() === memail?.toLowerCase().trim()
+      );
+      if (match) {
+        setMentorName(match.name.toLowerCase().trim());
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  // FETCH INTERNS
+  const fetchInterns = async () => {
+    try {
+      const res = await fetch("http://localhost:5000/api/interns");
+      const data = await res.json();
+      setInterns(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  // FETCH TASKS
   const fetchTasks = async () => {
     try {
       const res = await fetch("http://localhost:5000/api/tasks");
       const backendData = await res.json();
-      setTasks(Array.isArray(backendData) ? backendData : []);
+      const safe = Array.isArray(backendData) ? backendData : [];
+      setAllTasks(safe);
       setLoading(false);
     } catch (err) {
       console.error("Fetch error:", err);
@@ -28,29 +61,51 @@ export default function Companies() {
     }
   };
 
+  // FILTER TASKS FOR THIS MENTOR
   useEffect(() => {
+    if (!mentorName || interns.length === 0 || allTasks.length === 0) {
+      setTasks(allTasks); // Fallback to all tasks if mentor not found yet
+      return;
+    }
+
+    const myInternIds = interns
+      .filter(
+        (i) =>
+          i.mentorName?.toLowerCase().trim() === mentorName ||
+          i.mentor?.toLowerCase().trim() === mentorName
+      )
+      .map((i) => i._id?.toString());
+
+    const filteredByMentor = allTasks.filter((task) => {
+      const taskInternId =
+        typeof task.internId === "object" ? task.internId?._id : task.internId;
+      return myInternIds.includes(taskInternId?.toString());
+    });
+
+    setTasks(filteredByMentor);
+  }, [mentorName, interns, allTasks]);
+
+  useEffect(() => {
+    fetchMentor();
+    fetchInterns();
     fetchTasks();
   }, []);
 
-  // --- UPDATED DATE HELPERS ---
+  // --- HELPERS ---
   const formatToDisplay = (dateStr) => {
     if (!dateStr) return "N/A";
-    // Changes dd-mm-yyyy to dd/mm/yyyy for UI
-    return dateStr.replaceAll("-", "/"); 
+    return dateStr.replaceAll("-", "/");
   };
 
   const formatToISO = (dateStr) => {
     if (!dateStr) return "";
     const parts = dateStr.split("-");
     if (parts.length === 3) {
-      // Create date object from dd-mm-yyyy
       const date = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
-      // Add 1 day so the assignDate itself is NOT selectable
       date.setDate(date.getDate() + 1);
-      
       const yyyy = date.getFullYear();
-      const mm = String(date.getMonth() + 1).padStart(2, '0');
-      const dd = String(date.getDate()).padStart(2, '0');
+      const mm = String(date.getMonth() + 1).padStart(2, "0");
+      const dd = String(date.getDate()).padStart(2, "0");
       return `${yyyy}-${mm}-${dd}`;
     }
     return "";
@@ -59,16 +114,14 @@ export default function Companies() {
   const handleUpdateDeadline = async (taskId, newDateISO) => {
     const parts = newDateISO.split("-");
     const formattedDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
-
     try {
       const res = await fetch(`http://localhost:5000/api/tasks/${taskId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ deadline: formattedDate }),
       });
-
       if (res.ok) {
-        setTasks((prev) =>
+        setAllTasks((prev) =>
           prev.map((t) => (t._id === taskId ? { ...t, deadline: formattedDate } : t))
         );
       }
@@ -84,13 +137,10 @@ export default function Companies() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus }),
       });
-
       if (res.ok) {
-        setTasks((prev) =>
+        setAllTasks((prev) =>
           prev.map((t) => (t._id === taskId ? { ...t, status: newStatus } : t))
         );
-      } else {
-        alert("Failed to update status");
       }
     } catch (err) {
       console.error("Update error:", err);
@@ -101,7 +151,7 @@ export default function Companies() {
     if (!window.confirm("Are you sure you want to delete this task?")) return;
     try {
       await fetch(`http://localhost:5000/api/tasks/${id}`, { method: "DELETE" });
-      setTasks((prev) => prev.filter((t) => t._id !== id));
+      setAllTasks((prev) => prev.filter((t) => t._id !== id));
     } catch (err) {
       console.error("Delete error:", err);
     }
@@ -133,9 +183,11 @@ export default function Companies() {
       <div className="flex justify-between items-center border-b px-4 py-4 bg-white">
         <div>
           <h1 className="text-xl sm:text-2xl font-semibold text-[#1F2A5B]">Assign Task</h1>
-          <p className="text-xs sm:text-sm text-[#1F2A5B]">Manage assigned tasks and statuses.</p>
+          <p className="text-xs sm:text-sm text-[#1F2A5B]">{memail}</p>
         </div>
-        <div className="h-8 w-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-bold">SI</div>
+        <div className="h-8 w-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-bold">
+          {memail?.substring(0, 2).toUpperCase()}
+        </div>
       </div>
 
       {/* Filters */}
@@ -255,7 +307,7 @@ export default function Companies() {
         </button>
       </div>
 
-      {/* Detail Modal */}
+      {/* Modal remains the same */}
       {selectedTask && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-[100] p-4 font-[Poppins]">
           <div className="bg-white w-full max-w-md rounded-2xl p-6 shadow-2xl">
@@ -267,12 +319,7 @@ export default function Companies() {
               <DetailRow label="Deadline" value={formatToDisplay(selectedTask.deadline)} />
               <DetailRow label="Current Status" value={selectedTask.status} customColor={getStatusColor(selectedTask.status)} />
             </div>
-            <button 
-              onClick={() => setSelectedTask(null)} 
-              className="w-full mt-8 bg-[#1F2A5B] py-3 rounded-xl font-bold text-white hover:bg-[#2a3a7d] transition-all"
-            >
-              Close
-            </button>
+            <button onClick={() => setSelectedTask(null)} className="w-full mt-8 bg-[#1F2A5B] py-3 rounded-xl font-bold text-white hover:bg-[#2a3a7d]">Close</button>
           </div>
         </div>
       )}

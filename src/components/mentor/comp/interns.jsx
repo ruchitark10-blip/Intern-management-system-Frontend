@@ -1,19 +1,13 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Users, ClipboardList, ClipboardClock } from "lucide-react";
 import AddTaskModal from "./AddTaskModal";
 
 export default function Dashboard({ memail }) {
-  const stats = [
-    { title: "Assigned Interns", value: 12, color: "bg-orange-100 text-orange-600", icon: Users },
-    { title: "Tasks Assigned", value: 25, color: "bg-blue-100 text-blue-600", icon: ClipboardList },
-    { title: "Pending Reviews", value: 8, color: "bg-purple-100 text-purple-600", icon: ClipboardClock },
-  ];
 
   const [data, setData] = useState([]);
-  const [allInterns, setAllInterns] = useState([]); // ✅ backup
-  const [mentorName, setMentorName] = useState(""); // ✅ mentor
+  const [allInterns, setAllInterns] = useState([]);
+  const [mentorName, setMentorName] = useState("");
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [selectedIntern, setSelectedIntern] = useState(null);
   const [viewIntern, setViewIntern] = useState(null);
@@ -37,7 +31,7 @@ export default function Dashboard({ memail }) {
     }
   };
 
-  // ✅ FETCH INTERNS (NO FILTER)
+  // ✅ FETCH INTERNS
   const fetchInterns = async () => {
     try {
       const res = await fetch("http://localhost:5000/api/interns");
@@ -48,13 +42,13 @@ export default function Dashboard({ memail }) {
         : [];
 
       setAllInterns(sorted);
-      setData(sorted); // default show all
+      setData(sorted);
     } catch (err) {
       console.error(err);
     }
   };
 
-  // ✅ APPLY FILTER AFTER BOTH READY
+  // ✅ FILTER INTERNS BY MENTOR
   useEffect(() => {
     if (!mentorName) return;
 
@@ -65,7 +59,6 @@ export default function Dashboard({ memail }) {
       );
     });
 
-    // fallback
     setData(filtered.length ? filtered : allInterns);
   }, [mentorName, allInterns]);
 
@@ -109,10 +102,11 @@ export default function Dashboard({ memail }) {
     }
   };
 
-  const recentActivityData = data.slice(0, 2);
+  const recentActivityData = data;
 
   return (
     <div className="min-h-screen font-[Poppins] bg-gray-50">
+
       {/* Header */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center border-b px-4 py-4 gap-4">
         <div>
@@ -126,27 +120,8 @@ export default function Dashboard({ memail }) {
         </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-4">
-        {stats.map((item, i) => {
-          const Icon = item.icon;
-          return (
-            <div key={i} className="border rounded-lg p-4 bg-white shadow-sm">
-              <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${item.color}`}>
-                <Icon className="w-5 h-5" />
-              </div>
-              <div className="mt-3">
-                <p className="text-sm text-gray-400 uppercase font-medium">{item.title}</p>
-                <h2 className="text-xl font-bold">{item.value}</h2>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Recent Activity Table */}
-      <div className="px-4 mt-4">
-        <h2 className="text-green-600 font-bold text-lg mb-2">Recent Activity</h2>
+      {/* ONLY TABLE (Cards + Heading removed) */}
+      <div className="px-4 mt-6">
         <div className="bg-white rounded-xl border overflow-hidden shadow-sm">
           <table className="w-full text-sm text-left">
             <thead className="bg-gray-50 text-gray-400 border-b">
@@ -221,6 +196,7 @@ export default function Dashboard({ memail }) {
           </div>
         </div>
       )}
+
     </div>
   );
 }
