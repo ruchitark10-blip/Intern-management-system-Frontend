@@ -18,17 +18,7 @@ const chartData = [
 ];
 
 const App = ({email}) => {
-
-  // ❌ removed mentors from context
-  const { addIntern, addMentor } = useContext(AppStateContext);
-<<<<<<< HEAD
-
-  // ✅ backend states
-  const [interns, setInterns] = useState([]);
-  const [mentors, setMentors] = useState([]);
-=======
->>>>>>> kan-frontend
-
+const { addIntern, addMentor } = useContext(AppStateContext);
   // ✅ backend states
   const [interns, setInterns] = useState([]);
   const [mentors, setMentors] = useState([]);

@@ -16,7 +16,21 @@ export default function Dashboard({memail}) {
   const [selectedIntern, setSelectedIntern] = useState(null);
   const [viewIntern, setViewIntern] = useState(null);
 
- 
+//fetch mentor details
+const [mentorName, setMentorName] = useState("");
+const fetchMentor = async () => {
+  try {
+    const res = await fetch(`http://localhost:5000/api/mentors/${memail}`);
+    const data = await res.json();
+
+    console.log("Mentor Name:", data.name);
+
+    setMentorName(data?.name || "");
+  } catch (err) {
+    console.error("Error fetching mentor:", err);
+  }
+};
+
   // FETCH INTERNS
   const fetchInterns = async () => {
     try {
@@ -33,6 +47,7 @@ export default function Dashboard({memail}) {
 
   useEffect(() => {
     fetchInterns();
+    fetchMentor();
   }, []);
 
   // ADD TASK

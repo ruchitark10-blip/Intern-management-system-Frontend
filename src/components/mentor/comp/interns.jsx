@@ -1,40 +1,79 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
-import { Eye, Trash2, Search, Filter, ClipboardList } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Users, ClipboardList, ClipboardClock } from "lucide-react";
 import AddTaskModal from "./AddTaskModal";
 
-export default function MentorInternTable({memail}) {
-  const [data, setData] = useState([]); 
-  const [loading, setLoading] = useState(false);
-  const [page, setPage] = useState(1);
-  const itemsPerPage = 5;
+export default function Dashboard({ memail }) {
+  const stats = [
+    { title: "Assigned Interns", value: 12, color: "bg-orange-100 text-orange-600", icon: Users },
+    { title: "Tasks Assigned", value: 25, color: "bg-blue-100 text-blue-600", icon: ClipboardList },
+    { title: "Pending Reviews", value: 8, color: "bg-purple-100 text-purple-600", icon: ClipboardClock },
+  ];
 
-  const [search, setSearch] = useState("");
-  const [filterStatus, setFilterStatus] = useState("All");
-  const [filterOpen, setFilterOpen] = useState(false);
-
+  const [data, setData] = useState([]);
+  const [allInterns, setAllInterns] = useState([]); // ✅ backup
+  const [mentorName, setMentorName] = useState(""); // ✅ mentor
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [selectedIntern, setSelectedIntern] = useState(null);
   const [viewIntern, setViewIntern] = useState(null);
 
-  // FETCH ALL INTERNS
-  const fetchInterns = async () => {
+  // ✅ FETCH MENTOR
+  const fetchMentorByEmail = async () => {
     try {
-      setLoading(true);
-      const res = await fetch("http://localhost:5000/api/interns");
-      const backendData = await res.json();
-      setData(Array.isArray(backendData) ? backendData : []);
-      setLoading(false);
+      const res = await fetch("http://localhost:5000/api/mentors");
+      const data = await res.json();
+
+      const matchedMentor = data.find(
+        (mentor) =>
+          mentor.email?.toLowerCase().trim() === memail?.toLowerCase().trim()
+      );
+
+      if (matchedMentor) {
+        setMentorName(matchedMentor.name.toLowerCase().trim());
+      }
     } catch (err) {
-      console.error("Fetch error:", err);
-      setLoading(false);
+      console.error(err);
     }
   };
 
+  // ✅ FETCH INTERNS (NO FILTER)
+  const fetchInterns = async () => {
+    try {
+      const res = await fetch("http://localhost:5000/api/interns");
+      const backendData = await res.json();
+
+      const sorted = Array.isArray(backendData)
+        ? backendData.sort((a, b) => new Date(b.joinedDate) - new Date(a.joinedDate))
+        : [];
+
+      setAllInterns(sorted);
+      setData(sorted); // default show all
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  // ✅ APPLY FILTER AFTER BOTH READY
+  useEffect(() => {
+    if (!mentorName) return;
+
+    const filtered = allInterns.filter((intern) => {
+      return (
+        intern.mentorName?.toLowerCase().trim() === mentorName ||
+        intern.mentor?.toLowerCase().trim() === mentorName
+      );
+    });
+
+    // fallback
+    setData(filtered.length ? filtered : allInterns);
+  }, [mentorName, allInterns]);
+
+  // INITIAL LOAD
   useEffect(() => {
     fetchInterns();
-  }, []);
+    if (memail) fetchMentorByEmail();
+  }, [memail]);
 
   // ADD TASK
   const handleAddTask = async (taskPayload) => {
@@ -48,28 +87,14 @@ export default function MentorInternTable({memail}) {
       if (response.ok) {
         alert(`Task successfully assigned to ${selectedIntern.name}!`);
         setIsTaskModalOpen(false);
+        fetchInterns();
       } else {
         const errorData = await response.json();
         alert("Failed to assign task: " + (errorData.message || "Unknown error"));
       }
     } catch (err) {
       console.error("Database connection error:", err);
-      alert("Could not connect to the server. Is your backend running?");
-    }
-  };
-
-  // STATUS CHANGE
-  const handleStatusChange = async (id, newStatus) => {
-    setData(prev => prev.map(i => (i._id === id ? { ...i, status: newStatus } : i)));
-    try {
-      await fetch(`http://localhost:5000/api/interns/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: newStatus }),
-      });
-    } catch (err) {
-      console.error("Error updating status:", err);
-      fetchInterns();
+      alert("Could not connect to the server.");
     }
   };
 
@@ -79,67 +104,49 @@ export default function MentorInternTable({memail}) {
     try {
       await fetch(`http://localhost:5000/api/interns/${id}`, { method: "DELETE" });
       setData(prev => prev.filter(item => item._id !== id));
-    } catch (err) { console.error(err); }
+    } catch (err) {
+      console.error(err);
+    }
   };
 
-  // FILTER + SEARCH
-  const filteredData = useMemo(() => {
-    return data.filter(i => {
-      if (filterStatus !== "All" && i.status !== filterStatus) return false;
-      if (!search) return true;
-      const s = search.toLowerCase();
-      return i.name?.toLowerCase().includes(s) || i.email?.toLowerCase().includes(s);
-    });
-  }, [data, search, filterStatus]);
-
-  // SORT filtered data by joinedDate descending (newest first)
-  const sortedData = useMemo(() => {
-    return [...filteredData].sort((a, b) => new Date(b.joinedDate) - new Date(a.joinedDate));
-  }, [filteredData]);
-
-  const totalPages = Math.ceil(sortedData.length / itemsPerPage);
-  const currentData = sortedData.slice((page - 1) * itemsPerPage, page * itemsPerPage);
+  const recentActivityData = data.slice(0, 2);
 
   return (
-    <div className="font-[Poppins] flex-1 flex flex-col">
-      {/* Header Section */}
+    <div className="min-h-screen font-[Poppins] bg-gray-50">
+      {/* Header */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center border-b px-4 py-4 gap-4">
         <div>
-          <h1 className="text-xl font-semibold text-[#1F2A5B]">Interns</h1>
-          <p className="text-sm text-gray-500">Manage all interns and track their progress.{memail}</p>
+          <h1 className="text-xl sm:text-2xl font-semibold text-[#1F2A5B]">Dashboard</h1>
+          <p className="text-xs sm:text-sm text-[#1F2A5B]">Welcome back, {memail}</p>
         </div>
-        <div className="flex items-center gap-4">
-          <div className="h-9 w-9 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold"><p>{memail.substring(0, 2)}</p></div>
+        <div className="flex items-center gap-4 ml-auto">
+          <div className="h-8 w-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm">
+            <p>{memail?.substring(0, 2)}</p>
+          </div>
         </div>
       </div>
 
-      <main className="p-6">
-        {/* Search & Filter Bar */}
-        <div className="flex items-center gap-3 mb-6">
-          <div className="flex items-center gap-2 bg-white border rounded-xl px-4 py-2 flex-1">
-            <Search size={18} className="text-gray-400" />
-            <input 
-              value={search} 
-              onChange={(e) => { setSearch(e.target.value); setPage(1); }} 
-              placeholder="Search by name or email..." 
-              className="outline-none w-full text-sm bg-transparent" 
-            />
-          </div>
-          <div className="relative">
-            <button onClick={() => setFilterOpen((p) => !p)} className="bg-white border px-4 py-2 rounded-xl flex items-center gap-2 text-sm text-gray-600">
-              <Filter size={18}/> {filterStatus === "All" ? "Filter" : filterStatus}
-            </button>
-            {filterOpen && (
-              <div className="absolute right-0 mt-2 w-36 bg-white border rounded-xl shadow-lg z-50">
-                {["All", "Active", "Inactive"].map((s) => (
-                  <div key={s} onClick={() => { setFilterStatus(s); setFilterOpen(false); setPage(1); }} className="px-4 py-2 text-sm hover:bg-gray-100 cursor-pointer">{s}</div>
-                ))}
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-4">
+        {stats.map((item, i) => {
+          const Icon = item.icon;
+          return (
+            <div key={i} className="border rounded-lg p-4 bg-white shadow-sm">
+              <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${item.color}`}>
+                <Icon className="w-5 h-5" />
               </div>
-            )}
-          </div>
-        </div>
+              <div className="mt-3">
+                <p className="text-sm text-gray-400 uppercase font-medium">{item.title}</p>
+                <h2 className="text-xl font-bold">{item.value}</h2>
+              </div>
+            </div>
+          );
+        })}
+      </div>
 
-        {/* Intern Table */}
+      {/* Recent Activity Table */}
+      <div className="px-4 mt-4">
+        <h2 className="text-green-600 font-bold text-lg mb-2">Recent Activity</h2>
         <div className="bg-white rounded-xl border overflow-hidden shadow-sm">
           <table className="w-full text-sm text-left">
             <thead className="bg-gray-50 text-gray-400 border-b">
@@ -150,7 +157,7 @@ export default function MentorInternTable({memail}) {
               </tr>
             </thead>
             <tbody className="divide-y">
-              {currentData.map((i) => (
+              {recentActivityData.map(i => (
                 <tr key={i._id} className="hover:bg-gray-50 transition-colors">
                   <td className="p-4 flex items-center gap-3">
                     <div className="h-10 w-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold">
@@ -159,54 +166,43 @@ export default function MentorInternTable({memail}) {
                     <div>
                       <p className="font-semibold text-gray-800">{i.name}</p>
                       <p className="text-xs text-gray-400 mb-1">{i.email}</p>
-                      <select
-                        value={i.status || "Active"}
-                        onChange={(e) => handleStatusChange(i._id, e.target.value)}
-                        className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded border outline-none cursor-pointer appearance-none transition-all ${
-                          i.status === "Active" ? "bg-green-50 text-green-600 border-green-200" : "bg-red-50 text-red-600 border-red-200"
-                        }`}
-                      >
-                        <option value="Active">Active ▼</option>
-                        <option value="Inactive">Inactive ▼</option>
-                      </select>
                     </div>
                   </td>
-                  <td className="p-4 text-gray-600">{i.joinedDate ? new Date(i.joinedDate).toLocaleDateString() : "N/A"}</td>
+                  <td className="p-4 text-gray-600">
+                    {i.joinedDate ? new Date(i.joinedDate).toLocaleDateString() : "N/A"}
+                  </td>
                   <td className="p-4 flex justify-end gap-3">
-                    <button 
+                    <button
                       onClick={() => { setSelectedIntern(i); setIsTaskModalOpen(true); }}
-                      className="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-blue-700 flex items-center gap-1.5 transition-colors"
+                      className="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-blue-700"
                     >
-                      <ClipboardList size={14}/> Assign Task
+                      Assign Task
                     </button>
-                    <button onClick={() => setViewIntern(i)} className="text-gray-400 hover:text-blue-500"><Eye size={18}/></button>
-                    <button onClick={() => handleDelete(i._id)} className="text-gray-400 hover:text-red-500"><Trash2 size={18}/></button>
+                    <button onClick={() => setViewIntern(i)} className="text-gray-400 hover:text-blue-500">
+                      View
+                    </button>
+                    <button onClick={() => handleDelete(i._id)} className="text-gray-400 hover:text-red-500">
+                      Delete
+                    </button>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
-
-          {/* Pagination */}
-          <div className="flex items-center justify-between px-6 py-4 bg-white border-t">
-            <button disabled={page === 1} onClick={() => setPage(page - 1)} className="border border-orange-400 text-orange-500 px-4 py-1.5 rounded-lg text-xs font-medium hover:bg-orange-50 disabled:opacity-30">Previous</button>
-            <p className="text-gray-400 text-xs font-medium">Page {page} of {totalPages || 1}</p>
-            <button disabled={page === totalPages || totalPages === 0} onClick={() => setPage(page + 1)} className="border border-orange-400 text-orange-500 px-4 py-1.5 rounded-lg text-xs font-medium hover:bg-orange-50 disabled:opacity-30">Next</button>
-          </div>
         </div>
-      </main>
+      </div>
 
       {/* Task Modal */}
       {isTaskModalOpen && selectedIntern && (
-        <AddTaskModal 
-          isOpen={isTaskModalOpen} 
-          intern={selectedIntern} 
-          onClose={() => setIsTaskModalOpen(false)} 
-          onAddTask={handleAddTask} 
+        <AddTaskModal
+          isOpen={isTaskModalOpen}
+          intern={selectedIntern}
+          onClose={() => setIsTaskModalOpen(false)}
+          onAddTask={handleAddTask}
         />
       )}
 
-      {/* View Modal */}
+      {/* View Intern Modal */}
       {viewIntern && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[60]">
           <div className="bg-white p-6 rounded-xl w-96 shadow-xl border">
@@ -218,7 +214,9 @@ export default function MentorInternTable({memail}) {
               <p><b>Joined Date:</b> {new Date(viewIntern.joinedDate).toLocaleDateString()}</p>
             </div>
             <div className="flex justify-end mt-6">
-              <button onClick={() => setViewIntern(null)} className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm">Close</button>
+              <button onClick={() => setViewIntern(null)} className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm">
+                Close
+              </button>
             </div>
           </div>
         </div>
