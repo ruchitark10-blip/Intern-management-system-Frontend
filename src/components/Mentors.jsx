@@ -1,8 +1,17 @@
-import { Eye, Edit, Trash2, Bell, Plus, Search, Filter } from "lucide-react";
+import { Eye, Edit, Trash2, Plus, Search, Filter } from "lucide-react";
 import { useMemo, useState, useEffect } from "react";
 import AddMentorModal from "./AddMentorModal";
 
 const ITEMS_PER_PAGE = 10;
+
+// ✅ initials function
+const getInitials = (text) => {
+  if (!text) return "";
+  const words = text.trim().split(" ");
+  return words.length === 1
+    ? words[0].slice(0, 2).toUpperCase()
+    : (words[0][0] + words[1][0]).toUpperCase();
+};
 
 export default function MentorsTable() {
   const [mentors, setMentors] = useState([]);
@@ -17,16 +26,16 @@ export default function MentorsTable() {
 
   const [loading, setLoading] = useState(false);
 
-  // FETCH MENTORS
+  // FETCH
   const fetchMentors = async () => {
     try {
       setLoading(true);
       const res = await fetch("http://localhost:5000/api/mentors");
       const data = await res.json();
-      setMentors(data);
-      setLoading(false);
+      setMentors(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Error fetching mentors:", err);
+    } finally {
       setLoading(false);
     }
   };
@@ -35,7 +44,7 @@ export default function MentorsTable() {
     fetchMentors();
   }, []);
 
-  // SEARCH + FILTER
+  // FILTER
   const filteredMentors = useMemo(() => {
     return mentors.filter((m) => {
       if (statusFilter !== "All" && m.status !== statusFilter) return false;
@@ -44,9 +53,9 @@ export default function MentorsTable() {
       const s = search.toLowerCase();
 
       return (
-        m.name.toLowerCase().includes(s) ||
-        m.email.toLowerCase().includes(s) ||
-        m.contact.includes(search)
+        m.name?.toLowerCase().includes(s) ||
+        m.email?.toLowerCase().includes(s) ||
+        m.contact?.includes(search)
       );
     });
   }, [mentors, search, statusFilter]);
@@ -74,39 +83,25 @@ export default function MentorsTable() {
 
   // DELETE
   const handleDelete = async (id) => {
-    const confirmDelete = window.confirm(
-      "Are you sure you want to delete this mentor?"
-    );
-
-    if (!confirmDelete) return;
+    if (!window.confirm("Delete this mentor?")) return;
 
     try {
-      const res = await fetch(`http://localhost:5000/api/mentors/${id}`, {
+      await fetch(`http://localhost:5000/api/mentors/${id}`, {
         method: "DELETE",
       });
 
-      const data = await res.json();
-
-      if (res.ok) {
-        setMentors((prev) => prev.filter((m) => m._id !== id));
-        alert("Mentor deleted successfully");
-      } else {
-        alert(data.message || "Failed to delete mentor");
-      }
+      setMentors((prev) => prev.filter((m) => m._id !== id));
     } catch (err) {
-      console.error("Error deleting mentor:", err);
-      alert("Server error while deleting mentor");
+      console.error("Delete error:", err);
     }
   };
 
-  // STATUS UPDATE
+  // STATUS
   const handleStatusChange = async (id, newStatus) => {
     try {
       await fetch(`http://localhost:5000/api/mentors/${id}`, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus }),
       });
 
@@ -114,7 +109,7 @@ export default function MentorsTable() {
         prev.map((m) => (m._id === id ? { ...m, status: newStatus } : m))
       );
     } catch (err) {
-      console.error("Error updating status:", err);
+      console.error("Status error:", err);
     }
   };
 
@@ -128,21 +123,16 @@ export default function MentorsTable() {
           <p className="text-md text-gray-500">Manage all mentors here.</p>
         </div>
 
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => setAddOpen(true)}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-medium hover:bg-blue-700"
-          >
-            <Plus size={16} /> Add Mentor
-          </button>
-
-          {/* Bell icon removed */}
-          {/* <Bell size={20} className="text-gray-400" /> */}
-        </div>
+        <button
+          onClick={() => setAddOpen(true)}
+          className="bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-medium hover:bg-blue-700"
+        >
+          <Plus size={16} /> Add Mentor
+        </button>
       </div>
 
       {/* SEARCH + FILTER */}
-      <div className="p-4 flex items-center gap-3 mb-6">
+      <div className="p-4 flex gap-3">
 
         <div className="flex items-center gap-2 bg-white border rounded-xl px-4 py-2 flex-1">
           <Search size={18} className="text-gray-400" />
@@ -152,21 +142,21 @@ export default function MentorsTable() {
               setSearch(e.target.value);
               setPage(1);
             }}
-            placeholder="Search by name, email or phone"
+            placeholder="Search mentor..."
             className="outline-none text-sm w-full bg-transparent"
           />
         </div>
 
         <div className="relative">
           <button
-            onClick={() => setFilterOpen((p) => !p)}
-            className="bg-white border px-4 py-2 rounded-xl flex items-center gap-2 text-sm text-gray-600"
+            onClick={() => setFilterOpen(!filterOpen)}
+            className="bg-white border px-4 py-2 rounded-xl flex items-center gap-2 text-sm"
           >
-            <Filter size={18} /> Filter
+            <Filter size={18} /> {statusFilter}
           </button>
 
           {filterOpen && (
-            <div className="absolute right-0 mt-2 w-40 bg-white border rounded-xl shadow-lg z-50">
+            <div className="absolute right-0 mt-2 w-40 bg-white border rounded-xl shadow">
               {["All", "Active", "Inactive", "Completed"].map((s) => (
                 <div
                   key={s}
@@ -175,7 +165,7 @@ export default function MentorsTable() {
                     setFilterOpen(false);
                     setPage(1);
                   }}
-                  className="px-4 py-2 text-sm cursor-pointer hover:bg-gray-100"
+                  className="px-4 py-2 text-sm hover:bg-gray-100 cursor-pointer"
                 >
                   {s}
                 </div>
@@ -187,7 +177,7 @@ export default function MentorsTable() {
       </div>
 
       {/* TABLE */}
-      <table className="w-full text-sm m-2">
+      <table className="w-full text-sm">
         <thead className="bg-gray-50 text-gray-400">
           <tr>
             <th className="p-4 text-left">Mentor</th>
@@ -201,9 +191,9 @@ export default function MentorsTable() {
           {paginatedMentors.map((m) => (
             <tr key={m._id} className="hover:bg-gray-50">
 
-              <td className="p-4 flex gap-3 items-center">
-                <div className="h-9 w-9 rounded-full bg-gray-200 flex items-center justify-center font-bold">
-                  {m.name[0]}
+              <td className="p-4 flex items-center gap-3">
+                <div className="h-9 w-9 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-semibold">
+                  {getInitials(m.name) || "M"}
                 </div>
 
                 <div>
@@ -220,15 +210,14 @@ export default function MentorsTable() {
                   onChange={(e) =>
                     handleStatusChange(m._id, e.target.value)
                   }
-                  className={`px-3 py-1 rounded-full text-xs font-semibold border outline-none
-                    ${
-                      m.status === "Active"
-                        ? "bg-green-100 text-green-700 border-green-300"
-                        : m.status === "Inactive"
-                        ? "bg-red-100 text-red-700 border-red-300"
-                        : "bg-blue-100 text-blue-700 border-blue-300"
-                    }
-                  `}
+                  className={`px-3 py-1 rounded-full text-xs font-semibold border
+                  ${
+                    m.status === "Active"
+                      ? "bg-green-100 text-green-700 border-green-300"
+                      : m.status === "Inactive"
+                      ? "bg-red-100 text-red-700 border-red-300"
+                      : "bg-blue-100 text-blue-700 border-blue-300"
+                  }`}
                 >
                   <option value="Active">Active</option>
                   <option value="Inactive">Inactive</option>
@@ -238,25 +227,9 @@ export default function MentorsTable() {
 
               <td className="p-4 text-center">
                 <div className="flex justify-center gap-3">
-
-                  <Eye
-                    size={16}
-                    className="cursor-pointer"
-                    onClick={() => setViewMentor(m)}
-                  />
-
-                  <Edit
-                    size={16}
-                    className="text-blue-500 cursor-pointer"
-                    onClick={() => setEditMentor(m)}
-                  />
-
-                  <Trash2
-                    size={16}
-                    className="text-red-500 cursor-pointer"
-                    onClick={() => handleDelete(m._id)}
-                  />
-
+                  <Eye size={16} onClick={() => setViewMentor(m)} className="cursor-pointer" />
+                  <Edit size={16} onClick={() => setEditMentor(m)} className="text-blue-500 cursor-pointer" />
+                  <Trash2 size={16} onClick={() => handleDelete(m._id)} className="text-red-500 cursor-pointer" />
                 </div>
               </td>
 
@@ -265,74 +238,59 @@ export default function MentorsTable() {
         </tbody>
       </table>
 
-      {/* PAGINATION */}
-      <div className="flex justify-between items-center p-4 text-sm">
+      {/* ✅ PAGINATION (UPDATED LIKE YOUR IMAGE) */}
+      <div className="flex items-center justify-between px-6 py-4 bg-gray-50">
 
         <button
           disabled={page === 1}
           onClick={() => setPage(page - 1)}
-          className="px-4 py-1.5 rounded-lg border"
+          className={`px-4 py-1.5 rounded-md border text-sm
+            ${page === 1 
+              ? "bg-gray-100 text-gray-300 cursor-not-allowed" 
+              : "bg-white text-gray-600 hover:bg-gray-100"}
+          `}
         >
           Previous
         </button>
 
-        <span className="text-gray-600 font-medium">
+        <span className="text-sm text-gray-700 font-medium">
           Page {page} of {totalPages || 1}
         </span>
 
         <button
           disabled={page === totalPages || totalPages === 0}
           onClick={() => setPage(page + 1)}
-          className="px-4 py-1.5 rounded-lg border"
+          className={`px-4 py-1.5 rounded-md border text-sm
+            ${page === totalPages || totalPages === 0
+              ? "bg-gray-100 text-gray-300 cursor-not-allowed"
+              : "bg-white text-gray-600 hover:bg-gray-100"}
+          `}
         >
           Next
         </button>
 
       </div>
 
-      {/* ADD MODAL */}
-      {addOpen && (
-        <AddMentorModal
-          onAdd={handleAdd}
-          onClose={() => setAddOpen(false)}
-        />
-      )}
+      {/* MODALS */}
+      {addOpen && <AddMentorModal onAdd={handleAdd} onClose={() => setAddOpen(false)} />}
+      {editMentor && <AddMentorModal initialData={editMentor} onAdd={handleUpdate} onClose={() => setEditMentor(null)} />}
 
-      {/* EDIT MODAL */}
-      {editMentor && (
-        <AddMentorModal
-          initialData={editMentor}
-          onAdd={(data) => handleUpdate(data)}
-          onClose={() => setEditMentor(null)}
-        />
-      )}
-
-      {/* VIEW MODAL */}
       {viewMentor && (
         <div className="fixed inset-0 bg-black/30 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-xl w-96 space-y-3">
-
-            <h2 className="font-bold text-lg">Mentor Details</h2>
-
+          <div className="bg-white p-6 rounded-xl w-96">
+            <h2 className="font-bold mb-3">Mentor Details</h2>
             <p><b>Name:</b> {viewMentor.name}</p>
             <p><b>Email:</b> {viewMentor.email}</p>
             <p><b>Contact:</b> {viewMentor.contact}</p>
             <p><b>Status:</b> {viewMentor.status}</p>
-
-            <div className="flex justify-end">
-              <button
-                onClick={() => setViewMentor(null)}
-                className="px-4 py-2 border rounded"
-              >
-                Close
-              </button>
-            </div>
-
+            <button onClick={() => setViewMentor(null)} className="mt-4 px-4 py-2 border rounded">
+              Close
+            </button>
           </div>
         </div>
       )}
 
-      {loading && <p className="p-4 text-gray-500">Loading mentors...</p>}
+      {loading && <p className="p-4 text-gray-500">Loading...</p>}
     </div>
   );
 }

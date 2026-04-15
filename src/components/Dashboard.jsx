@@ -1,7 +1,9 @@
-import React from 'react';
-import { Plus, CheckSquare, Bell, Eye, Users, Edit, UserPlus, UserCheck, ClipboardList, Award, GraduationCap, Trash2 } from 'lucide-react';
+import React, { useState, useContext, useEffect } from 'react';
+import { 
+  // Bell, ❌ commented out
+  Eye, Users, Edit, UserPlus, UserCheck, Award, GraduationCap, Trash2 
+} from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { useState, useContext, useEffect } from "react";
 import { AppStateContext } from '../context/AppState';
 
 import AddInternModal from './AddInternModal';
@@ -17,16 +19,25 @@ const chartData = [
   { name: 'Sun', attendance: 60 },
 ];
 
-const App = ({email}) => {
-const { addIntern, addMentor } = useContext(AppStateContext);
-  // ✅ backend states
+// ✅ initials function
+const getInitials = (text) => {
+  if (!text) return "";
+  const words = text.trim().split(" ");
+  return words.length === 1
+    ? words[0].slice(0, 2).toUpperCase()
+    : (words[0][0] + words[1][0]).toUpperCase();
+};
+
+const App = ({ email }) => {
+  const { addIntern, addMentor } = useContext(AppStateContext);
+
   const [interns, setInterns] = useState([]);
   const [mentors, setMentors] = useState([]);
-  const name = localStorage.getItem("name"); //chngable
+  const name = localStorage.getItem("name");
+
   const [openInternModal, setOpenInternModal] = useState(false);
   const [openMentorModal, setOpenMentorModal] = useState(false);
 
-  // ✅ fetch both APIs
   useEffect(() => {
     fetchInterns();
     fetchMentors();
@@ -36,9 +47,10 @@ const { addIntern, addMentor } = useContext(AppStateContext);
     try {
       const res = await fetch("http://localhost:5000/api/interns");
       const data = await res.json();
-      setInterns(data);
+      setInterns(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Error fetching interns", err);
+      setInterns([]);
     }
   };
 
@@ -46,14 +58,15 @@ const { addIntern, addMentor } = useContext(AppStateContext);
     try {
       const res = await fetch("http://localhost:5000/api/mentors");
       const data = await res.json();
-      setMentors(data);
+      setMentors(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Error fetching mentors", err);
+      setMentors([]);
     }
   };
 
-  // ✅ latest 2 interns
   const recentInterns = [...interns]
+    .filter(i => i.joinedDate)
     .sort((a, b) => new Date(b.joinedDate) - new Date(a.joinedDate))
     .slice(0, 2);
 
@@ -77,10 +90,20 @@ const { addIntern, addMentor } = useContext(AppStateContext);
           </div>
 
           <div className="flex items-center gap-4">
-            <Bell className="text-gray-400 cursor-pointer hover:text-gray-600" size={20} />
-            <div className="h-9 w-9 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
-              <p>{email.substring(0, 2)}</p>
+
+            {/* 🔔 Bell icon commented out */}
+            {/*
+            <Bell 
+              className="text-gray-400 cursor-pointer hover:text-gray-600" 
+              size={20} 
+            />
+            */}
+
+            {/* ✅ Profile icon (same as interns page) */}
+            <div className="h-9 w-9 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-semibold">
+              {getInitials(name || email) || "U"}
             </div>
+
           </div>
         </div>
 
@@ -129,7 +152,6 @@ const { addIntern, addMentor } = useContext(AppStateContext);
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
             <div className="lg:col-span-2 bg-white rounded-2xl border shadow-sm overflow-hidden">
-
               <h3 className="p-5 font-semibold text-slate-800">
                 Recent Activity
               </h3>
@@ -145,46 +167,51 @@ const { addIntern, addMentor } = useContext(AppStateContext);
                 </thead>
 
                 <tbody>
-
-                  {recentInterns.map((intern) => (
-
-                    <tr key={intern._id} className="border-t hover:bg-slate-50">
-
-                      <td className="px-5 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 bg-slate-200 rounded-full" />
-                          <div>
-                            <p className="font-semibold text-slate-700">{intern.name}</p>
-                            <p className="text-xs text-slate-400">{intern.email}</p>
-                          </div>
-                        </div>
+                  {recentInterns.length === 0 ? (
+                    <tr>
+                      <td colSpan="4" className="text-center py-5 text-gray-400">
+                        No recent activity
                       </td>
-
-                      <td className="text-center">
-                        {intern.mentor || "-"}
-                      </td>
-
-                      <td className="text-center">
-                        <span className="bg-green-50 text-green-600 px-3 py-1 rounded-full text-xs font-bold">
-                          {intern.status}
-                        </span>
-                      </td>
-
-                      <td className="text-center">
-                        <div className="flex justify-center gap-4 text-slate-400">
-                          <Eye size={16} className="cursor-pointer hover:text-slate-600" />
-                          <Edit size={16} className="cursor-pointer hover:text-blue-500" />
-                          <Trash2 size={16} className="cursor-pointer hover:text-red-500" />
-                        </div>
-                      </td>
-
                     </tr>
+                  ) : (
+                    recentInterns.map((intern) => (
+                      <tr key={intern._id} className="border-t hover:bg-slate-50">
 
-                  ))}
+                        <td className="px-5 py-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-semibold">
+                              {getInitials(intern.name)}
+                            </div>
+                            <div>
+                              <p className="font-semibold text-slate-700">{intern.name}</p>
+                              <p className="text-xs text-slate-400">{intern.email}</p>
+                            </div>
+                          </div>
+                        </td>
 
+                        <td className="text-center">
+                          {intern.mentor || "-"}
+                        </td>
+
+                        <td className="text-center">
+                          <span className="bg-green-50 text-green-600 px-3 py-1 rounded-full text-xs font-bold">
+                            {intern.status}
+                          </span>
+                        </td>
+
+                        <td className="text-center">
+                          <div className="flex justify-center gap-4 text-slate-400">
+                            <Eye size={16} className="cursor-pointer hover:text-slate-600" />
+                            <Edit size={16} className="cursor-pointer hover:text-blue-500" />
+                            <Trash2 size={16} className="cursor-pointer hover:text-red-500" />
+                          </div>
+                        </td>
+
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
-
             </div>
 
             {/* QUICK ACTION */}
@@ -218,7 +245,7 @@ const { addIntern, addMentor } = useContext(AppStateContext);
           <AddMentorModal
             onAdd={(mentor) => {
               addMentor(mentor);
-              fetchMentors(); // ✅ refresh mentors
+              fetchMentors();
               setOpenMentorModal(false);
             }}
             onClose={() => setOpenMentorModal(false)}

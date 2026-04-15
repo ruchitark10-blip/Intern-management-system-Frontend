@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { Routes, Route } from "react-router-dom";
+
 import Sidebar from "./components/Sidebar";
 import Dashboard from "./components/Dashboard";
 import Mentors from "./components/Mentors";
@@ -10,30 +12,29 @@ import Reports from "./components/Reports";
 import LoginScreen from "./components/LoginScreen";
 import InternDashboard from "./components/intern/index";
 import MentorDashboard from "./components/mentor/index";
+import ResetPassword from "./components/ResetPassword";
 
 function App() {
   const [active, setActive] = useState("Dashboard");
   const [loggedIn, setLoggedIn] = useState(false);
   const [userRole, setUserRole] = useState(null);
-  const [userEmail, setUserEmail] = useState(null); // ✅ ADDED
+  const [userEmail, setUserEmail] = useState(null);
 
-  //  Roles must match backend exactly
   const roleDefaultPage = {
     admin: "Dashboard",
     mentor: "Tasks",
     intern: "Tasks",
   };
 
-  //  Restore login from localStorage
   useEffect(() => {
     const storedRole = localStorage.getItem("role");
     const storedLoggedIn = localStorage.getItem("loggedIn");
     const storedToken = localStorage.getItem("token");
-    const storedEmail = localStorage.getItem("email"); // ✅ ADDED
+    const storedEmail = localStorage.getItem("email");
 
     if (storedRole && storedToken && storedLoggedIn === "true") {
       setUserRole(storedRole);
-      setUserEmail(storedEmail); // ✅ ADDED
+      setUserEmail(storedEmail);
       setLoggedIn(true);
       setActive(roleDefaultPage[storedRole] || "Dashboard");
     }
@@ -44,7 +45,7 @@ function App() {
       case "Mentors":
         return <Mentors email={userEmail}/>;
       case "Interns":
-        return <Interns  email={userEmail}/>;
+        return <Interns email={userEmail}/>;
       case "Tasks":
         return <Tasks email={userEmail}/>;
       case "Attendance":
@@ -52,15 +53,13 @@ function App() {
       case "Reports":
         return <Reports email={userEmail}/>;
       default:
-        return <Dashboard email={userEmail} />; // 🔁 UPDATED (email pass)
+        return <Dashboard email={userEmail} />;
     }
   };
 
-  // Handle login
-  const handleLogin = (role, token, email) => { // 🔁 UPDATED (email added)
+  const handleLogin = (role, token, email) => {
     setUserRole(role);
-    setUserEmail(email); // ✅ ADDED
-
+    setUserEmail(email);
     const page = roleDefaultPage[role] || "Dashboard";
     setActive(page);
     setLoggedIn(true);
@@ -68,46 +67,47 @@ function App() {
     localStorage.setItem("role", role);
     localStorage.setItem("token", token);
     localStorage.setItem("loggedIn", "true");
-    localStorage.setItem("email", email); // ✅ ADDED
+    localStorage.setItem("email", email);
   };
 
-  //  Handle logout
   const handleLogout = () => {
     setLoggedIn(false);
     setUserRole(null);
-    setUserEmail(null); // ✅ ADDED
+    setUserEmail(null);
     setActive("Dashboard");
 
     localStorage.removeItem("role");
     localStorage.removeItem("token");
     localStorage.removeItem("loggedIn");
-    localStorage.removeItem("email"); // ✅ ADDED
+    localStorage.removeItem("email");
   };
 
-  //  If not logged in → show login screen
+  // ✅ FIX: PUBLIC ROUTES (LOGIN + RESET PASSWORD)
   if (!loggedIn) {
-    return <LoginScreen onLogin={handleLogin} />;
+    return (
+      <Routes>
+        <Route path="/" element={<LoginScreen onLogin={handleLogin} />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
+      </Routes>
+    );
   }
 
-  //  Mentor dashboard
   if (userRole === "mentor") {
-    return <MentorDashboard email={userEmail} onLogout={handleLogout} />; // 🔁 UPDATED
+    return <MentorDashboard email={userEmail} onLogout={handleLogout} />;
   }
 
-  //  Intern dashboard
   if (userRole === "intern") {
-    return <InternDashboard email={userEmail} onLogout={handleLogout} />; // 🔁 UPDATED
+    return <InternDashboard email={userEmail} onLogout={handleLogout} />;
   }
 
-  //  Admin (default layout with sidebar)
   return (
     <AppStateProvider>
       <div className="flex">
-        <Sidebar 
-          active={active} 
-          setActive={setActive} 
+        <Sidebar
+          active={active}
+          setActive={setActive}
           onLogout={handleLogout}
-          email={userEmail} // ✅ ADDED
+          email={userEmail}
         />
         <div className="flex-1 min-h-screen">
           {renderPage()}

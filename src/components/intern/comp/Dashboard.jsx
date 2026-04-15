@@ -1,187 +1,180 @@
-import { useState } from "react";
-import {
-  ClockIcon,
-  AcademicCapIcon,
-} from "@heroicons/react/24/outline";
+"use client";
 
-import { Bell } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { User, Calendar, Mail, UserCheck, CheckCircle2, Clock, PlayCircle, ClipboardList } from "lucide-react";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
-export default function Dashboard({iemail}) {
-  const [attendance, setAttendance] = useState("Not Marked");
-  const [page, setPage] = useState(1);
+export default function Dashboard({ iemail }) {
+  const [internData, setInternData] = useState(null);
+  const [tasks, setTasks] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const [activities, setActivities] = useState([
-    {
-      activity: "Attendance marked",
-      time: "Today 9:30 AM",
-      status: "Present",
-      color: "green",
-    },
-  ]);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // 1. Fetch Intern Profile Details
+        const internRes = await fetch("http://localhost:5000/api/interns");
+        const interns = await internRes.json();
+        const currentIntern = interns.find(
+          (i) => i.email?.toLowerCase().trim() === iemail?.toLowerCase().trim()
+        );
+        setInternData(currentIntern);
 
-  const markAttendance = () => {
-    setAttendance("Present");
+        // 2. Fetch Tasks for Chart
+        const taskRes = await fetch("http://localhost:5000/api/tasks");
+        const allTasks = await taskRes.json();
+        
+        // Filter tasks belonging to this intern
+        const internTasks = allTasks.filter(t => {
+            const internId = typeof t.internId === "object" ? t.internId?._id : t.internId;
+            return internId === currentIntern?._id;
+        });
+        setTasks(internTasks);
+        
+        setLoading(false);
+      } catch (err) {
+        console.error("Error fetching dashboard data:", err);
+        setLoading(false);
+      }
+    };
 
-    setActivities([
-      {
-        activity: "Attendance marked",
-        time: "Just now",
-        status: "Present",
-        color: "green",
-      },
-      ...activities,
-    ]);
-  };
+    if (iemail) fetchData();
+  }, [iemail]);
 
-  const nextPage = () => {
-    if (page < 10) setPage(page + 1);
-  };
+  // Prepare data for the Chart
+  const chartData = [
+    { name: 'Pending', count: tasks.filter(t => t.status === 'Pending').length, color: '#f97316' },
+    { name: 'Active', count: tasks.filter(t => t.status === 'Active').length, color: '#3b82f6' },
+    { name: 'Review', count: tasks.filter(t => t.status === 'Reviewing').length, color: '#8b5cf6' },
+    { name: 'Done', count: tasks.filter(t => t.status === 'Completed').length, color: '#22c55e' },
+  ];
 
-  const prevPage = () => {
-    if (page > 1) setPage(page - 1);
-  };
+  if (loading) return <div className="p-8 text-center font-[Poppins]">Loading Dashboard...</div>;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-
-      {/* HEADER */}
-      <div className="flex flex-col lg:flex-row border-b justify-between items-start lg:items-center py-[14px] px-4 gap-4">
+    <div className="min-h-screen bg-gray-50 font-[Poppins]">
+      {/* NAVBAR */}
+      <div className="flex justify-between items-center border-b px-6 py-4 bg-white shadow-sm">
         <div>
-          <h1 className="text-lg font-semibold text-gray-800">Dashboard</h1>
-          <p className="text-md text-gray-500">
-            Hello, {iemail}
-          </p>
+          <h1 className="text-xl sm:text-2xl font-bold text-[#1F2A5B]">Dashboard</h1>
+          <p className="text-xs text-gray-500">Welcome back, {internData?.name || iemail}</p>
         </div>
-
         <div className="flex items-center gap-4">
-          <Bell className="text-gray-400 cursor-pointer hover:text-gray-600" size={20} />
-          <div className="h-9 w-9 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold cursor-pointer">
-            <p>{iemail.substring(0, 2)}</p>
+            <div className="h-9 w-9 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold shadow-md">
+                {iemail?.substring(0, 2).toUpperCase()}
+            </div>
+        </div>
+      </div>
+
+      <div className="p-6 space-y-6">
+        {/* 1. INTERN PROFILE CARD */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="bg-[#1F2A5B] px-6 py-4 flex items-center justify-between">
+            <h2 className="text-white font-semibold flex items-center gap-2">
+              <User size={18} /> Intern Profile Details
+            </h2>
+            <span className="text-[10px] bg-blue-500/20 text-blue-100 px-2 py-1 rounded uppercase tracking-widest font-bold">Official</span>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 p-6">
+            {/* 1st Card: Intern Name */}
+            <InfoBox 
+                label="Intern Name" 
+                value={internData?.name} 
+                icon={<UserCheck className="text-blue-500" />} 
+            />
+
+            {/* 2nd Card: Intern Email */}
+            <InfoBox 
+                label="Intern Email" 
+                value={internData?.email || iemail} 
+                icon={<Mail className="text-blue-500" />} 
+            />
+
+            {/* 3rd Card: Joining Date */}
+            <InfoBox 
+                label="Joining Date" 
+                value={internData?.joinedDate ? new Date(internData.joinedDate).toLocaleDateString() : "N/A"} 
+                icon={<Calendar className="text-orange-500" />} 
+            />
             
+            {/* 4th Card: Assigned Mentor */}
+            <InfoBox 
+                label="Assigned Mentor" 
+                value={internData?.mentorName || internData?.mentor || "Not Assigned"} 
+                icon={<PlayCircle className="text-purple-500" />} 
+            />
           </div>
         </div>
-      </div>
 
-      <div className="p-5">
-
-        {/* STATS */}
-        <div className="grid md:grid-cols-2 gap-4 mb-6 mt-5">
-
-          <StatCard
-            icon={<ClockIcon className="h-6 w-6 text-blue-500" />}
-            title="Attendance"
-            value={attendance === "Present" ? "92%" : "Not Marked"}
-          />
-
-          <StatCard
-            icon={<AcademicCapIcon className="h-6 w-6 text-green-500" />}
-            title="Certificates"
-            value="Eligible"
-          />
-
-        </div>
-
-        {/* MAIN GRID */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-
-          {/* ACTIVITY */}
-          <div className="md:col-span-2 rounded-lg shadow-sm">
-            <div className="flex justify-between items-center">
-              <h2 className="font-semibold mb-4">Recent Activity</h2>
-
-              <select className="border rounded px-3 py-1 text-sm cursor-pointer">
-                <option value="all">View All</option>
-                <option value="Rahul">Rahul</option>
-                <option value="Ankit">Ankit</option>
-              </select>
-            </div>
-
-            <table className="w-full text-sm bg-white mt-2 border rounded-lg overflow-hidden">
-              <thead className="text-gray-500 border-b">
-                <tr>
-                  <th className="text-left py-2 ps-4">Activity</th>
-                  <th className="text-left py-2">Time</th>
-                  <th className="text-left py-2">Status</th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {activities.slice(0, 3).map((item, index) => (
-                  <ActivityRow key={index} {...item} />
-                ))}
-              </tbody>
-            </table>
-
-            <div className="flex justify-between items-center mt-4">
-              <button
-                onClick={prevPage}
-                className="px-3 py-1 border border-orange-400 rounded text-sm"
-              >
-                Previous
-              </button>
-
-              <span className="text-sm text-gray-500">
-                Page {page} of 10
-              </span>
-
-              <button
-                onClick={nextPage}
-                className="px-3 py-1 border border-orange-400 rounded text-sm"
-              >
-                Next
-              </button>
+        {/* 2. TASK ANALYTICS SECTION */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          
+          {/* Chart Card */}
+          <div className="lg:col-span-2 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+            <h3 className="text-lg font-bold text-[#1F2A5B] mb-6">Task Performance Graph</h3>
+            <div className="h-[300px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} fontSize={12} />
+                  <YAxis axisLine={false} tickLine={false} fontSize={12} />
+                  <Tooltip 
+                    cursor={{fill: '#f8fafc'}} 
+                    contentStyle={{borderRadius: '10px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'}} 
+                  />
+                  <Bar dataKey="count" radius={[6, 6, 0, 0]} barSize={50}>
+                    {chartData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
             </div>
           </div>
 
-          {/* PRIMARY ACTION */}
-          <div>
-            <h2 className="font-semibold mb-4">Primary Action</h2>
-
-            <div className="bg-white rounded-lg shadow-sm p-5">
-
-              <button
-                onClick={markAttendance}
-                className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
-              >
-                Mark Attendance
-              </button>
-
+          {/* Task Summary Metrics */}
+          <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4">
+            <h3 className="text-lg font-bold text-[#1F2A5B] mb-4">Task Breakdown</h3>
+            <StatItem label="Total Tasks" count={tasks.length} color="bg-gray-100 text-gray-700" icon={<ClipboardList size={16}/>} />
+            <StatItem label="Completed" count={chartData[3].count} color="bg-green-100 text-green-700" icon={<CheckCircle2 size={16}/>} />
+            <StatItem label="Active" count={chartData[1].count} color="bg-blue-100 text-blue-700" icon={<PlayCircle size={16}/>} />
+            <StatItem label="Pending" count={chartData[0].count} color="bg-orange-100 text-orange-700" icon={<Clock size={16}/>} />
+            
+            <div className="mt-6 p-4 bg-orange-50 rounded-xl border border-orange-100">
+                <p className="text-[11px] text-orange-600 font-bold uppercase tracking-wider">Quick Note</p>
+                <p className="text-xs text-orange-800 mt-1 italic">
+                    {internData?.mentorNote || "Consistency is key! Aim to move your 'Pending' tasks to 'Completed' by the weekend."}
+                </p>
             </div>
           </div>
-
         </div>
       </div>
     </div>
   );
 }
 
-function StatCard({ icon, title, value }) {
+// Sub-component for Profile Info items
+function InfoBox({ label, value, icon }) {
   return (
-    <div className="bg-white rounded-lg shadow-sm p-4 items-center">
-      <div>{icon}</div>
-
-      <div className="pt-2">
-        <p className="text-sm text-gray-500">{title}</p>
-        <p className="font-semibold text-lg">{value}</p>
+    <div className="flex items-start gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors border border-transparent hover:border-gray-200">
+      <div className="p-2 bg-gray-50 rounded-lg">{icon}</div>
+      <div>
+        <p className="text-[10px] uppercase font-bold text-gray-400 tracking-wide">{label}</p>
+        <p className="text-sm font-semibold text-gray-700 break-all">{value || "---"}</p>
       </div>
     </div>
   );
 }
 
-function ActivityRow({ activity, time, status, color }) {
-  const colors = {
-    green: "bg-green-100 text-green-700",
-  };
-
-  return (
-    <tr className="border-b last:border-none">
-      <td className="py-3 ps-4">{activity}</td>
-      <td className="py-3 text-gray-500">{time}</td>
-      <td className="py-3">
-        <span className={`px-3 py-1 rounded-full text-xs ${colors[color]}`}>
-          {status}
-        </span>
-      </td>
-    </tr>
-  );
+// Sub-component for Task Summary items
+function StatItem({ label, count, color, icon }) {
+    return (
+        <div className="flex items-center justify-between p-3 border border-gray-50 rounded-xl bg-gray-50/30">
+            <div className="flex items-center gap-3">
+                <div className={`p-2 rounded-lg ${color}`}>{icon}</div>
+                <span className="text-sm font-medium text-gray-600">{label}</span>
+            </div>
+            <span className="text-lg font-bold text-[#1F2A5B]">{count}</span>
+        </div>
+    );
 }

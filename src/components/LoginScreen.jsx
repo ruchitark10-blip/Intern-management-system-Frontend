@@ -7,7 +7,9 @@ const LoginScreen = ({ onLogin }) => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isForgotLoading, setIsForgotLoading] = useState(false);
 
+  // ✅ LOGIN
   const handleLogin = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -25,20 +27,11 @@ const LoginScreen = ({ onLogin }) => {
 
       if (!res.ok) {
         alert(data.message || "Login failed");
-        console.log(data)
         setIsLoading(false);
         return;
       }
 
-      // Send role & token to App.jsx
-      onLogin(data.role, data.token,email);
-//       onLogin({
-//   role: data.role,
-//   token: data.token,
-//   name: data.user.name,
-//   email: data.user.email
-// });
-      
+      onLogin(data.role, data.token, email);
 
     } catch (err) {
       console.error(err);
@@ -48,8 +41,43 @@ const LoginScreen = ({ onLogin }) => {
     setIsLoading(false);
   };
 
+  // ✅ FORGOT PASSWORD
+  const handleForgotPassword = async () => {
+    if (!email) {
+      alert("Please enter your email first");
+      return;
+    }
+
+    try {
+      setIsForgotLoading(true);
+
+      const res = await fetch("http://localhost:5000/auth/forgot-password", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ email })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.message || "Failed to send reset link");
+      } else {
+        alert("Password reset link sent to your email");
+      }
+
+    } catch (err) {
+      console.error(err);
+      alert("Server error");
+    }
+
+    setIsForgotLoading(false);
+  };
+
   return (
     <div className="min-h-screen w-screen bg-slate-50 flex items-center justify-center relative overflow-hidden">
+      
       <div className="absolute top-0 left-0 w-full h-1/2 bg-[#2e2a69] transform -skew-y-6 origin-top-left z-0"></div>
 
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl flex overflow-hidden relative z-10 min-h-[600px]">
@@ -78,6 +106,7 @@ const LoginScreen = ({ onLogin }) => {
 
         {/* RIGHT PANEL */}
         <div className="w-full md:w-1/2 p-12 flex flex-col justify-center bg-white">
+          
           <div className="mb-8">
             <h3 className="text-2xl font-bold text-gray-800 mb-2">Welcome Back!</h3>
             <p className="text-gray-500">
@@ -110,6 +139,7 @@ const LoginScreen = ({ onLogin }) => {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Password
               </label>
+
               <div className="relative">
                 <Lock className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
                 <input
@@ -126,6 +156,18 @@ const LoginScreen = ({ onLogin }) => {
                   className="absolute right-3 top-3 text-gray-400"
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+
+              {/* ✅ FORGOT PASSWORD LINK */}
+              <div className="flex justify-end mt-2">
+                <button
+                  type="button"
+                  onClick={handleForgotPassword}
+                  disabled={isForgotLoading}
+                  className="text-sm text-[#2e2a69] hover:underline font-medium"
+                >
+                  {isForgotLoading ? "Sending..." : "Forgot Password?"}
                 </button>
               </div>
             </div>
