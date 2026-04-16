@@ -15,7 +15,8 @@ export default function AddInternModal({ onClose }) {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const gmailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
+  const nameRegex = /^[A-Za-z ]+$/;
 
   useEffect(() => {
     fetchMentors();
@@ -33,35 +34,50 @@ export default function AddInternModal({ onClose }) {
 
   const submit = async () => {
     if (!name.trim()) return setError("Name is required");
-    if (!emailRegex.test(email)) return setError("Enter a valid email");
+    if (!nameRegex.test(name.trim()))
+      return setError("Name should contain only letters");
+
+    if (!gmailRegex.test(email.trim()))
+      return setError("Email must be a valid @gmail.com address");
+
     if (!college.trim()) return setError("College is required");
     if (!department.trim()) return setError("Department is required");
     if (!mentor) return setError("Please select a mentor");
-    if (!joinedDate) return setError("Please select a joined date in 2026");
+    if (!joinedDate) return setError("Please select a joining date");
 
-    const year = new Date(joinedDate).getFullYear();
-    if (year !== 2026) return setError("Joined date must be in 2026");
+    const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
+    const selectedDate = joinedDate; // already YYYY-MM-DD
+
+    // ONLY 2026 allowed
+    if (selectedDate.slice(0, 4) !== "2026") {
+      return setError("Only dates from the year 2026 are allowed");
+    }
+
+    // ❌ BLOCK FUTURE DATES (safe string compare)
+    if (selectedDate > today) {
+      return setError("Future dates are not allowed");
+    }
 
     setError("");
     setLoading(true);
 
     const internData = {
       name: name.trim(),
-      email: email.trim(),
+      email: email.trim().toLowerCase(),
       college: college.trim(),
       department: department.trim(),
       mentor,
       status,
-      joinedDate
+      joinedDate,
     };
 
     try {
       const response = await fetch("http://localhost:5000/api/interns", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(internData)
+        body: JSON.stringify(internData),
       });
 
       const result = await response.json();
@@ -88,11 +104,9 @@ Please save this password.`);
       setJoinedDate("");
 
       onClose(result);
-
     } catch (err) {
       console.error(err);
       setError("Server error. Please try again.");
-      setLoading(false);
     }
 
     setLoading(false);
@@ -103,48 +117,54 @@ Please save this password.`);
       <div className="bg-white p-6 rounded-xl w-96 space-y-3">
         <h2 className="font-bold text-lg">Add Intern</h2>
 
-        <input className="border w-full p-2 rounded"
+        <input
+          className="border w-full p-2 rounded"
           placeholder="Name"
           value={name}
           onChange={(e) => setName(e.target.value)}
         />
 
-        <input className="border w-full p-2 rounded"
-          placeholder="Email"
+        <input
+          className="border w-full p-2 rounded"
+          placeholder="Email (@gmail.com)"
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
 
-        <input className="border w-full p-2 rounded"
+        <input
+          className="border w-full p-2 rounded"
           placeholder="College"
           value={college}
           onChange={(e) => setCollege(e.target.value)}
         />
 
-        <input className="border w-full p-2 rounded"
+        <input
+          className="border w-full p-2 rounded"
           placeholder="Department"
           value={department}
           onChange={(e) => setDepartment(e.target.value)}
         />
 
-        <select className="border w-full p-2 rounded"
+        <select
+          className="border w-full p-2 rounded"
           value={mentor}
           onChange={(e) => setMentor(e.target.value)}
         >
           <option value="">Select Mentor</option>
           {mentorsList.map((m) => (
-            <option key={m._id} value={m.name}>{m.name}</option>
+            <option key={m._id} value={m.name}>
+              {m.name}
+            </option>
           ))}
         </select>
 
-        <select className="border w-full p-2 rounded"
+        <select
+          className="border w-full p-2 rounded"
           value={status}
           onChange={(e) => setStatus(e.target.value)}
         >
           <option value="Active">Active</option>
-          <option value="Inactive">Inactive</option>
-          <option value="Completed">Completed</option>
         </select>
 
         <input
@@ -153,7 +173,7 @@ Please save this password.`);
           value={joinedDate}
           onChange={(e) => setJoinedDate(e.target.value)}
           min="2026-01-01"
-          max="2026-12-31"
+          max={new Date().toISOString().split("T")[0]}
         />
 
         {error && <p className="text-red-500 text-sm">{error}</p>}

@@ -141,7 +141,7 @@ export default function InternsPage() {
           </button>
 
           <div className="h-9 w-9 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">
-            SI
+            AD
           </div>
         </div>
       </div>

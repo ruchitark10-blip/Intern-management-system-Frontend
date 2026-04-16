@@ -11,37 +11,42 @@ export default function AddMentorModal({ onAdd, onClose, initialData = null }) {
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const contactRegex = /^[0-9]{10}$/;
+  const nameRegex = /^[A-Za-z ]+$/;
 
   const submit = async () => {
     const trimmedName = name.trim();
     const trimmedEmail = email.trim();
     const digitsOnlyContact = contact.replace(/\D/g, "");
 
-    if (!trimmedName) {
-      setError("Name is required");
-      return;
+    // NAME
+    if (!trimmedName) return setError("Name is required");
+    if (!nameRegex.test(trimmedName))
+      return setError("Name should contain only letters");
+
+    // EMAIL
+    if (!emailRegex.test(trimmedEmail))
+      return setError("Enter a valid email");
+
+    // CONTACT
+    if (!contactRegex.test(digitsOnlyContact))
+      return setError("Enter a valid 10-digit contact number");
+
+    // DATE REQUIRED
+    if (!joinedDate) return setError("Please select joined date");
+
+    const selectedDate = new Date(joinedDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    selectedDate.setHours(0, 0, 0, 0);
+
+    // ❌ ONLY 2026
+    if (selectedDate.getFullYear() !== 2026) {
+      return setError("Joined date must be in the year 2026 only");
     }
 
-    if (!emailRegex.test(trimmedEmail)) {
-      setError("Enter a valid email");
-      return;
-    }
-
-    if (!contactRegex.test(digitsOnlyContact)) {
-      setError("Enter a valid 10-digit contact number");
-      return;
-    }
-
-    if (!joinedDate) {
-      setError("Please select joined date");
-      return;
-    }
-
-    const year = new Date(joinedDate).getFullYear();
-
-    if (year !== 2026) {
-      setError("Joined date must be in the year 2026 only");
-      return;
+    // ❌ NO FUTURE DATE (ALLOW UP TO TODAY ONLY)
+    if (selectedDate > today) {
+      return setError("Joined date cannot be in the future");
     }
 
     setError("");
@@ -70,13 +75,10 @@ export default function AddMentorModal({ onAdd, onClose, initialData = null }) {
         return;
       }
 
-      // ✅ Show generated password
       alert(`Mentor Created Successfully!
 
 Email: ${data.email}
-Password: ${data.password}
-
-Please save this password.`);
+Password: ${data.password}`);
 
       onAdd(data);
 
@@ -86,20 +88,19 @@ Please save this password.`);
       setStatus("Active");
       setJoinedDate("");
 
-      setLoading(false);
       onClose();
-
     } catch (err) {
-      console.error("Network error:", err);
+      console.error(err);
       setError("Server error. Try again.");
-      setLoading(false);
     }
+
+    setLoading(false);
   };
 
   return (
     <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-40">
       <div className="bg-white p-6 rounded-xl w-96 space-y-3">
-        <h2 className="font-bold mb-1">
+        <h2 className="font-bold">
           {initialData ? "Edit Mentor" : "Add Mentor"}
         </h2>
 
@@ -107,7 +108,10 @@ Please save this password.`);
           className="border w-full p-2"
           placeholder="Mentor Name"
           value={name}
-          onChange={(e) => setName(e.target.value)}
+          onChange={(e) => {
+            const val = e.target.value;
+            if (/^[A-Za-z ]*$/.test(val)) setName(val);
+          }}
         />
 
         <input
@@ -123,8 +127,8 @@ Please save this password.`);
           placeholder="Contact Number"
           value={contact}
           onChange={(e) => {
-            const value = e.target.value.replace(/\D/g, "");
-            setContact(value.slice(0, 10));
+            const val = e.target.value.replace(/\D/g, "");
+            setContact(val.slice(0, 10));
           }}
           type="tel"
         />
@@ -135,16 +139,16 @@ Please save this password.`);
           value={joinedDate}
           onChange={(e) => setJoinedDate(e.target.value)}
           min="2026-01-01"
-          max="2026-12-31"
+          max={new Date().toISOString().split("T")[0]}
         />
 
+        {/* ONLY ACTIVE */}
         <select
           className="border w-full p-2"
           value={status}
           onChange={(e) => setStatus(e.target.value)}
         >
-          <option>Active</option>
-          <option>Inactive</option>
+          <option value="Active">Active</option>
         </select>
 
         {error && <p className="text-red-500 text-sm">{error}</p>}

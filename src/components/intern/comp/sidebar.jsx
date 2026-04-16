@@ -22,12 +22,15 @@ const Sidebar = ({ onLogout, active, setActive, sidebarOpen, setSidebarOpen }) =
       name: "Dashboard",
       icon: PiSquaresFourThin,
     },
+
+    // ❌ Attendance section commented out
+    /*
     {
       name: "Attendance",
       icon: PanelTop,
     },
+    */
 
-    // Tasks Section
     {
       name: "Tasks",
       icon: GrTask,
@@ -40,10 +43,13 @@ const Sidebar = ({ onLogout, active, setActive, sidebarOpen, setSidebarOpen }) =
     },
     */
 
+    // ❌ Certificate section commented out
+    /*
     {
       name: "Certificate",
       icon: GraduationCap,
     },
+    */
   ];
 
   return (

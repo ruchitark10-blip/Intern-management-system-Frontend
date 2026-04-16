@@ -1,23 +1,11 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { 
-  // Bell, ❌ commented out
-  Eye, Users, Edit, UserPlus, UserCheck, Award, GraduationCap, Trash2 
+  Eye, Users, Edit, UserPlus, GraduationCap, Trash2 
 } from 'lucide-react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { AppStateContext } from '../context/AppState';
 
 import AddInternModal from './AddInternModal';
 import AddMentorModal from './AddMentorModal';
-
-const chartData = [
-  { name: 'Mon', attendance: 75 },
-  { name: 'Tue', attendance: 55 },
-  { name: 'Wed', attendance: 65 },
-  { name: 'Thu', attendance: 100 },
-  { name: 'Fri', attendance: 80 },
-  { name: 'Sat', attendance: 85 },
-  { name: 'Sun', attendance: 60 },
-];
 
 // ✅ initials function
 const getInitials = (text) => {
@@ -74,8 +62,13 @@ const App = ({ email }) => {
     container: { display: 'flex', minHeight: '100vh', backgroundColor: '#f8fafc', fontFamily: 'Poppins, sans-serif' },
     main: { flex: 1, display: 'flex', flexDirection: 'column', overflowY: 'auto' },
     content: { padding: '32px', display: 'flex', flexDirection: 'column', gap: '32px' },
-    statsGrid: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' },
-    card: { backgroundColor: 'white', padding: '20px', borderRadius: '16px', border: '1px solid #f1f5f9', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' },
+
+    // ✅ UPDATED GRID (2 columns full width)
+    statsGrid: { 
+      display: 'grid', 
+      gridTemplateColumns: 'repeat(2, 1fr)', 
+      gap: '20px' 
+    },
   };
 
   return (
@@ -90,20 +83,9 @@ const App = ({ email }) => {
           </div>
 
           <div className="flex items-center gap-4">
-
-            {/* 🔔 Bell icon commented out */}
-            {/*
-            <Bell 
-              className="text-gray-400 cursor-pointer hover:text-gray-600" 
-              size={20} 
-            />
-            */}
-
-            {/* ✅ Profile icon (same as interns page) */}
             <div className="h-9 w-9 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-semibold">
               {getInitials(name || email) || "U"}
             </div>
-
           </div>
         </div>
 
@@ -111,44 +93,22 @@ const App = ({ email }) => {
 
           {/* STATS */}
           <div style={styles.statsGrid}>
-            <StatCard icon={<Users color="#3b82f6" />} label="Total Interns" value={interns.length} bg="#eff6ff" />
-            <StatCard icon={<UserCheck color="#f97316" />} label="Present Today" value="92" bg="#fff7ed" />
-            <StatCard icon={<Award color="#22c55e" />} label="Certificates Issued" value="65" bg="#f0fdf4" />
-            <StatCard icon={<GraduationCap color="#f59e0b" />} label="Active Mentors" value={mentors.length} bg="#fffbeb" />
+            <StatCard 
+              icon={<Users color="#3b82f6" />} 
+              label="Total Interns" 
+              value={interns.length} 
+              bg="#eff6ff" 
+            />
+
+            <StatCard 
+              icon={<GraduationCap color="#f59e0b" />} 
+              label="Active Mentors" 
+              value={mentors.length} 
+              bg="#fffbeb" 
+            />
           </div>
 
-          {/* CHART */}
-          <div style={styles.card}>
-            <h3 className="mb-5 font-semibold">Attendance Trend</h3>
-
-            <div style={{ height: '250px' }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={chartData}>
-                  <defs>
-                    <linearGradient id="colorAttend" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.2} />
-                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} />
-                  <YAxis axisLine={false} tickLine={false} />
-                  <Tooltip />
-
-                  <Area
-                    type="monotone"
-                    dataKey="attendance"
-                    stroke="#3b82f6"
-                    strokeWidth={3}
-                    fill="url(#colorAttend)"
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
-          {/* TABLE */}
+          {/* TABLE + ACTION */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
             <div className="lg:col-span-2 bg-white rounded-2xl border shadow-sm overflow-hidden">
@@ -221,7 +181,6 @@ const App = ({ email }) => {
               <div className="space-y-3">
                 <ActionBtn onClick={() => setOpenInternModal(true)} icon={<UserPlus size={18} />} text="Add Intern" />
                 <ActionBtn onClick={() => setOpenMentorModal(true)} icon={<UserPlus size={18} />} text="Add Mentor" />
-                <ActionBtn icon={<Award size={18} />} text="Generate Certificate" />
               </div>
             </div>
 
