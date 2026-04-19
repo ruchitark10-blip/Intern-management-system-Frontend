@@ -34,15 +34,17 @@ const Sidebar = ({ active, setActive, sidebarOpen, setSidebarOpen, onLogout }) =
       name: "Tasks",
       icon: GrTask,
     },
-    {
-      name: "Attendance",
-      icon: PanelTop,
-    },
+    
     {
       name: "Report",
       icon: PiFilesFill,
     },
     --------------------------------------------------------- */
+    {
+      name: "Attendance",
+      icon: PanelTop,
+    },
+
   ];
   
   return (

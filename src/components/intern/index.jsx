@@ -14,13 +14,13 @@ function App({ onLogout,email }) {
   const renderPage = () => {
     switch (active) {
       case "Attendance":
-        return <Attendance/>;
+        return <Attendance iemail={email}/>;
       case "Tasks":
-        return <Tasks/>;
+        return <Tasks iemail={email}/>;
       case "Feedback":
-        return <Feedback/>;
+        return <Feedback iemail={email}/>;
       case "Certificate":
-        return <Certificate/>;
+        return <Certificate iemail={email}/>;
       default:
         return <Dashboard iemail={email}/>;
     }

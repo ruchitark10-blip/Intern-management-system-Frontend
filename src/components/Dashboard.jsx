@@ -7,7 +7,7 @@ import { AppStateContext } from '../context/AppState';
 import AddInternModal from './AddInternModal';
 import AddMentorModal from './AddMentorModal';
 
-// ✅ initials function
+// initials
 const getInitials = (text) => {
   if (!text) return "";
   const words = text.trim().split(" ");
@@ -25,6 +25,10 @@ const App = ({ email }) => {
 
   const [openInternModal, setOpenInternModal] = useState(false);
   const [openMentorModal, setOpenMentorModal] = useState(false);
+
+  // ✅ ADDED STATES
+  const [viewIntern, setViewIntern] = useState(null);
+  const [editIntern, setEditIntern] = useState(null);
 
   useEffect(() => {
     fetchInterns();
@@ -53,6 +57,22 @@ const App = ({ email }) => {
     }
   };
 
+  // ✅ DELETE FUNCTION
+  const handleDelete = async (id) => {
+    const confirmDelete = window.confirm("Delete this intern?");
+    if (!confirmDelete) return;
+
+    try {
+      await fetch(`http://localhost:5000/api/interns/${id}`, {
+        method: "DELETE",
+      });
+
+      setInterns((prev) => prev.filter((i) => i._id !== id));
+    } catch (err) {
+      console.error("Delete error", err);
+    }
+  };
+
   const recentInterns = [...interns]
     .filter(i => i.joinedDate)
     .sort((a, b) => new Date(b.joinedDate) - new Date(a.joinedDate))
@@ -62,8 +82,6 @@ const App = ({ email }) => {
     container: { display: 'flex', minHeight: '100vh', backgroundColor: '#f8fafc', fontFamily: 'Poppins, sans-serif' },
     main: { flex: 1, display: 'flex', flexDirection: 'column', overflowY: 'auto' },
     content: { padding: '32px', display: 'flex', flexDirection: 'column', gap: '32px' },
-
-    // ✅ UPDATED GRID (2 columns full width)
     statsGrid: { 
       display: 'grid', 
       gridTemplateColumns: 'repeat(2, 1fr)', 
@@ -93,28 +111,15 @@ const App = ({ email }) => {
 
           {/* STATS */}
           <div style={styles.statsGrid}>
-            <StatCard 
-              icon={<Users color="#3b82f6" />} 
-              label="Total Interns" 
-              value={interns.length} 
-              bg="#eff6ff" 
-            />
-
-            <StatCard 
-              icon={<GraduationCap color="#f59e0b" />} 
-              label="Active Mentors" 
-              value={mentors.length} 
-              bg="#fffbeb" 
-            />
+            <StatCard icon={<Users color="#3b82f6" />} label="Total Interns" value={interns.length} bg="#eff6ff" />
+            <StatCard icon={<GraduationCap color="#f59e0b" />} label="Active Mentors" value={mentors.length} bg="#fffbeb" />
           </div>
 
-          {/* TABLE + ACTION */}
+          {/* TABLE */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
             <div className="lg:col-span-2 bg-white rounded-2xl border shadow-sm overflow-hidden">
-              <h3 className="p-5 font-semibold text-slate-800">
-                Recent Activity
-              </h3>
+              <h3 className="p-5 font-semibold text-slate-800">Recent Activity</h3>
 
               <table className="w-full text-sm">
                 <thead className="text-slate-400 border-b">
@@ -127,49 +132,42 @@ const App = ({ email }) => {
                 </thead>
 
                 <tbody>
-                  {recentInterns.length === 0 ? (
-                    <tr>
-                      <td colSpan="4" className="text-center py-5 text-gray-400">
-                        No recent activity
+                  {recentInterns.map((intern) => (
+                    <tr key={intern._id} className="border-t hover:bg-slate-50">
+
+                      <td className="px-5 py-4">{intern.name}</td>
+
+                      <td className="text-center">{intern.mentor || "-"}</td>
+
+                      <td className="text-center">{intern.status}</td>
+
+                      {/* ✅ FIXED ICONS */}
+                      <td className="text-center">
+                        <div className="flex justify-center gap-4 text-slate-400">
+
+                          <Eye
+                            size={16}
+                            onClick={() => setViewIntern(intern)}
+                            className="cursor-pointer hover:text-blue-500"
+                          />
+
+                          {/* <Edit
+                            size={16}
+                            onClick={() => setEditIntern(intern)}
+                            className="cursor-pointer hover:text-green-500"
+                          /> */}
+
+                          <Trash2
+                            size={16}
+                            onClick={() => handleDelete(intern._id)}
+                            className="cursor-pointer hover:text-red-500"
+                          />
+
+                        </div>
                       </td>
+
                     </tr>
-                  ) : (
-                    recentInterns.map((intern) => (
-                      <tr key={intern._id} className="border-t hover:bg-slate-50">
-
-                        <td className="px-5 py-4">
-                          <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-semibold">
-                              {getInitials(intern.name)}
-                            </div>
-                            <div>
-                              <p className="font-semibold text-slate-700">{intern.name}</p>
-                              <p className="text-xs text-slate-400">{intern.email}</p>
-                            </div>
-                          </div>
-                        </td>
-
-                        <td className="text-center">
-                          {intern.mentor || "-"}
-                        </td>
-
-                        <td className="text-center">
-                          <span className="bg-green-50 text-green-600 px-3 py-1 rounded-full text-xs font-bold">
-                            {intern.status}
-                          </span>
-                        </td>
-
-                        <td className="text-center">
-                          <div className="flex justify-center gap-4 text-slate-400">
-                            <Eye size={16} className="cursor-pointer hover:text-slate-600" />
-                            <Edit size={16} className="cursor-pointer hover:text-blue-500" />
-                            <Trash2 size={16} className="cursor-pointer hover:text-red-500" />
-                          </div>
-                        </td>
-
-                      </tr>
-                    ))
-                  )}
+                  ))}
                 </tbody>
               </table>
             </div>
@@ -188,7 +186,33 @@ const App = ({ email }) => {
 
         </main>
 
-        {/* MODALS */}
+        {/* VIEW MODAL */}
+        {viewIntern && (
+          <div className="fixed inset-0 bg-black/30 flex justify-center items-center">
+            <div className="bg-white p-5 rounded-xl w-80">
+              <h2 className="font-bold mb-3">Intern Details</h2>
+              <p>Name: {viewIntern.name}</p>
+              <p>Email: {viewIntern.email}</p>
+              <button onClick={() => setViewIntern(null)} className="mt-3 px-3 py-1 border rounded">
+                Close
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* EDIT MODAL */}
+        {/* {editIntern && (
+          <AddInternModal
+            editData={editIntern}
+            onAdd={() => {
+              fetchInterns();
+              setEditIntern(null);
+            }}
+            onClose={() => setEditIntern(null)}
+          />
+        )} */}
+
+        {/* ADD MODALS */}
         {openInternModal && (
           <AddInternModal
             onAdd={(intern) => {
@@ -227,9 +251,8 @@ const StatCard = ({ icon, label, value, bg }) => (
     <div style={{ width: '40px', height: '40px', backgroundColor: bg, borderRadius: '10px', display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '15px' }}>
       {icon}
     </div>
-
     <p style={{ margin: 0, fontSize: '12px', color: '#64748b' }}>{label}</p>
-    <p style={{ margin: '5px 0 0 0', fontSize: '24px', fontWeight: 'bold', color: '#1e293b' }}>{value}</p>
+    <p style={{ margin: '5px 0 0 0', fontSize: '24px', fontWeight: 'bold' }}>{value}</p>
   </div>
 );
 

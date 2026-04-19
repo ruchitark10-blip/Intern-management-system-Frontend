@@ -24,12 +24,12 @@ const Sidebar = ({ onLogout, active, setActive, sidebarOpen, setSidebarOpen }) =
     },
 
     // ❌ Attendance section commented out
-    /*
+    
     {
       name: "Attendance",
       icon: PanelTop,
     },
-    */
+    
 
     {
       name: "Tasks",
@@ -45,11 +45,12 @@ const Sidebar = ({ onLogout, active, setActive, sidebarOpen, setSidebarOpen }) =
 
     // ❌ Certificate section commented out
     /*
-    {
+    
+    */
+   {
       name: "Certificate",
       icon: GraduationCap,
     },
-    */
   ];
 
   return (
