@@ -1,135 +1,222 @@
-import { useState } from "react";
-import { Bell, Eye, Upload, Download , ExternalLink } from "lucide-react";
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import { Bell, Download } from "lucide-react";
 import { CiShare1 } from "react-icons/ci";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 
-export default function CertificateDashboard() {
-  const [status, setStatus] = useState("Eligible"); 
-  const [generated, setGenerated] = useState(false);
+export default function CertificateDashboard({ iemail }) {
+  const [intern, setIntern] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const verificationId = "ABCD1-EFGH2";
+  const certificateRef = useRef();
 
-  const handleGenerate = () => {
-    if (status === "Eligible") {
-      setGenerated(true);
-      alert("Certificate Generated Successfully!");
-    }
+  const isCertificateAvailable = intern?.certificate === true;
+
+  // FETCH INTERN
+  useEffect(() => {
+    const fetchIntern = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/api/interns");
+        const data = await res.json();
+
+        const currentIntern = data.find(
+          (i) =>
+            i.email?.toLowerCase().trim() ===
+            iemail?.toLowerCase().trim()
+        );
+
+        setIntern(currentIntern || null);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (iemail) fetchIntern();
+    else setLoading(false);
+  }, [iemail]);
+
+  // ✅ PERFECT PDF DOWNLOAD (NO CROP)
+  const handleDownload = async () => {
+    if (!isCertificateAvailable) return;
+
+    const element = certificateRef.current;
+
+    const canvas = await html2canvas(element, {
+      scale: 3,
+      useCORS: true,
+    });
+
+    const imgData = canvas.toDataURL("image/png");
+
+    const pdf = new jsPDF({
+      orientation: "landscape",
+      unit: "px",
+      format: [canvas.width, canvas.height], // 🔥 dynamic height (no crop)
+    });
+
+    pdf.addImage(
+      imgData,
+      "PNG",
+      0,
+      0,
+      canvas.width,
+      canvas.height
+    );
+
+    pdf.save(`${intern?.name}-certificate.pdf`);
   };
 
-  const handleDownload = () => {
-    alert("PDF Download Started (demo)");
-  };
+  if (loading) {
+    return (
+      <p className="p-6 text-center text-gray-500">
+        Loading...
+      </p>
+    );
+  }
 
-  const handleVerification = () => {
-    alert(`Verifying Certificate ID: ${verificationId}`);
-  };
+  if (!intern) {
+    return (
+      <p className="p-6 text-center text-red-500">
+        No intern found
+      </p>
+    );
+  }
 
   return (
-    <div className=" bg-gray-50 min-h-screen">
-    
-      <div className="flex flex-col lg:flex-row border-b justify-between items-start lg:items-center py-[14px] px-4  gap-4">
-          <div>
-            <h1 className="text-lg sm:text-md font-semibold text-gray-800">
-              Dashboard
-            </h1>
-            <p className="text-md  text-gray-500">
-              Good Morning, Rahul
-            </p>
-          </div>
+    <div className="bg-gray-100 min-h-screen">
 
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4  w-full lg:w-auto">
-            <div className="flex items-center gap-4">
-           
-            <Bell className="text-gray-400 cursor-pointer hover:text-gray-600" size={20} />
-            <div className="h-9 w-9 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold cursor-pointer">
-              SI
-            </div>
-            </div>
-          </div>
-        </div>
-     <div className="p-6">
-       <h2 className="text-sm font-medium mb-3">Certificate</h2>
-
-    
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-       
-        <div className="bg-white border border-blue-100 rounded-lg p-5">
-          <div className="h-56 rounded-lg flex items-center justify-center text-white text-3xl font-medium
-            bg-gradient-to-b from-[#4259C1] via-[#E4D2D1] to-[#F39327]">
-            Certificate
-          </div>
-
-          <div className="flex items-center gap-2 mt-4 text-sm text-gray-600">
-            🔒 <span>Verification ID: <b>{verificationId}</b></span>
-          </div>
-        </div>
-
-        <div className="bg-white border-2 gap-2 border-blue-100 rounded-lg p-5 px-6">
-          <h3 className="font-medium mb-3">Certificate Status</h3>
-
-          <div className="flex gap-2 mb-5">
-            <button
-              onClick={() => setStatus("Not Eligible")}
-              className={`px-3 py-1 rounded-full text-xs border
-                ${status === "Not Eligible"
-                  ? "bg-gray-300 text-gray-700"
-                  : "bg-gray-100"}`}
-            >
-              Not Eligible
-            </button>
-
-            <button
-              onClick={() => setStatus("Eligible")}
-              className={`px-3 py-1 rounded-full text-xs border
-                ${status === "Eligible"
-                  ? "bg-green-100 text-green-700"
-                  : "bg-gray-100"}`}
-            >
-              Eligible
-            </button> 
-
-            <button
-              onClick={handleGenerate}
-              disabled={status !== "Eligible"}
-              className={`px-3 py-1 rounded-full text-xs border
-                ${generated
-                  ? "bg-blue-100 text-blue-700"
-                  : "bg-white hover:bg-blue-50"}
-                ${status !== "Eligible" && "opacity-50 cursor-not-allowed"}`}
-            >
-              Generate
-            </button>
-          </div>
-
-     
-          <button
-            onClick={handleDownload}
-            disabled={!generated}
-            className={`w-full py-3  rounded-md text-white gap-1 flex justify-center font-medium mb-3
-              ${generated
-                ? "bg-blue-600 hover:bg-blue-700"
-                : "bg-blue-600 cursor-not-allowed"}`}
-          >
-          <Download />Download Pdf
-          </button>
-
-          <button
-            onClick={handleVerification}
-            className="w-full text-sm flex pt-3  justify-center gap-1 text-blue-600 hover:underline mb-4"
-          >
-           <CiShare1 className="text-lg " /> View Verification
-          </button>
-
-       
-          <p className="text-xs pt-5 text-gray-500 leading-relaxed">
-            This certificate can be verified using the unique Verification ID
-            below and a public blockchain ledger for enhanced trust and
-            authenticity.
+      {/* HEADER */}
+      <div className="flex justify-between items-center px-6 py-4 bg-white shadow">
+        <div>
+          <h1 className="text-xl font-semibold">
+            Certificate Dashboard
+          </h1>
+          <p className="text-sm text-gray-500">
+            Welcome {intern?.name}
           </p>
         </div>
+        <Bell />
       </div>
 
-     </div>
+      <div className="p-6 grid md:grid-cols-2 gap-6">
 
+        {/* LEFT SIDE */}
+        <div className="bg-white p-6 rounded-xl shadow flex items-center justify-center">
+
+          {!isCertificateAvailable ? (
+            <div className="text-center text-gray-500">
+              <h2 className="text-lg font-semibold">
+                Certificate Pending
+              </h2>
+              <p className="text-sm mt-2">
+                Will appear after approval
+              </p>
+            </div>
+          ) : (
+
+            <div
+              ref={certificateRef}
+              className="w-full max-w-4xl aspect-[1.414/1] bg-white border-[8px] border-indigo-600 p-12 rounded-xl text-center"
+            >
+
+              <h1 className="text-3xl font-bold text-indigo-700">
+                CERTIFICATE
+              </h1>
+
+              <p className="text-gray-500 mt-1">
+                OF COMPLETION
+              </p>
+
+              <div className="my-6 border-t w-24 mx-auto"></div>
+
+              <p className="text-gray-600">
+                This is proudly presented to
+              </p>
+
+              <h2 className="text-4xl font-semibold mt-4 text-gray-800">
+                {intern?.name}
+              </h2>
+
+              <div className="my-6 border-t w-40 mx-auto"></div>
+
+              <p className="text-gray-600">
+                For successfully completing
+              </p>
+
+              <h3 className="text-2xl mt-2 text-indigo-600">
+                {intern?.duration} Months Internship
+              </h3>
+
+              {/* SIGNATURE */}
+              <div className="flex justify-between mt-16 text-sm">
+
+                <div className="text-left">
+                  <p className="font-semibold">
+                    Solstra Info IT
+                  </p>
+                  <div className="border-t w-40 mt-6"></div>
+                  <p className="text-xs mt-1">
+                    Authorized Signatory
+                  </p>
+                </div>
+
+                <div className="text-right">
+                  <p className="font-semibold">Date</p>
+                  <div className="border-t w-40 mt-6 ml-auto"></div>
+                  <p className="text-xs mt-1">
+                    {new Date().toLocaleDateString()}
+                  </p>
+                </div>
+
+              </div>
+
+            </div>
+          )}
+        </div>
+
+        {/* RIGHT PANEL */}
+        <div className="bg-white p-6 rounded-xl shadow">
+
+          <h3 className="text-lg font-semibold mb-4">
+            Status
+          </h3>
+
+          <div
+            className={`inline-block px-4 py-1 rounded-full text-sm font-semibold
+              ${
+                isCertificateAvailable
+                  ? "bg-green-100 text-green-700"
+                  : "bg-yellow-100 text-yellow-700"
+              }`}
+          >
+            {isCertificateAvailable ? "Approved" : "Pending"}
+          </div>
+
+          <button
+            onClick={handleDownload}
+            disabled={!isCertificateAvailable}
+            className={`w-full mt-6 py-3 rounded-lg text-white flex justify-center gap-2
+              ${
+                isCertificateAvailable
+                  ? "bg-indigo-600 hover:bg-indigo-700"
+                  : "bg-gray-400 cursor-not-allowed"
+              }`}
+          >
+            <Download size={18} />
+            Download PDF
+          </button>
+
+          <button className="w-full mt-4 flex justify-center gap-2 text-indigo-600 hover:underline">
+            <CiShare1 />
+            Verify Certificate
+          </button>
+
+        </div>
+      </div>
     </div>
   );
 }

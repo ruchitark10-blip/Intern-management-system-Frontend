@@ -10,6 +10,7 @@ export default function AddInternModal({ onClose }) {
   const [mentor, setMentor] = useState("");
   const [status, setStatus] = useState("Active");
   const [joinedDate, setJoinedDate] = useState("");
+  const [duration, setDuration] = useState(""); // ✅ ADDED
   const [mentorsList, setMentorsList] = useState([]);
 
   const [error, setError] = useState("");
@@ -44,17 +45,15 @@ export default function AddInternModal({ onClose }) {
     if (!department.trim()) return setError("Department is required");
     if (!mentor) return setError("Please select a mentor");
     if (!joinedDate) return setError("Please select a joining date");
+    if (!duration) return setError("Please select internship duration"); // ✅ ADDED
 
-    const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
-    const selectedDate = joinedDate; // already YYYY-MM-DD
+    const today = new Date().toISOString().split("T")[0];
 
-    // ONLY 2026 allowed
-    if (selectedDate.slice(0, 4) !== "2026") {
+    if (joinedDate.slice(0, 4) !== "2026") {
       return setError("Only dates from the year 2026 are allowed");
     }
 
-    // ❌ BLOCK FUTURE DATES (safe string compare)
-    if (selectedDate > today) {
+    if (joinedDate > today) {
       return setError("Future dates are not allowed");
     }
 
@@ -69,6 +68,7 @@ export default function AddInternModal({ onClose }) {
       mentor,
       status,
       joinedDate,
+      duration: Number(duration), // ✅ IMPORTANT FIX
     };
 
     try {
@@ -95,6 +95,7 @@ Password: ${result.password}
 
 Please save this password.`);
 
+      // RESET FORM
       setName("");
       setEmail("");
       setCollege("");
@@ -102,6 +103,7 @@ Please save this password.`);
       setMentor("");
       setStatus("Active");
       setJoinedDate("");
+      setDuration(""); // ✅ RESET
 
       onClose(result);
     } catch (err) {
@@ -146,6 +148,7 @@ Please save this password.`);
           onChange={(e) => setDepartment(e.target.value)}
         />
 
+        {/* MENTOR */}
         <select
           className="border w-full p-2 rounded"
           value={mentor}
@@ -159,6 +162,7 @@ Please save this password.`);
           ))}
         </select>
 
+        {/* STATUS */}
         <select
           className="border w-full p-2 rounded"
           value={status}
@@ -167,6 +171,7 @@ Please save this password.`);
           <option value="Active">Active</option>
         </select>
 
+        {/* JOINED DATE */}
         <input
           type="date"
           className="border w-full p-2 rounded"
@@ -175,6 +180,17 @@ Please save this password.`);
           min="2026-01-01"
           max={new Date().toISOString().split("T")[0]}
         />
+
+        {/* ✅ DURATION (NEW FIX) */}
+        <select
+          className="border w-full p-2 rounded"
+          value={duration}
+          onChange={(e) => setDuration(e.target.value)}
+        >
+          <option value="">Select Duration</option>
+          <option value="3">3 Months</option>
+          <option value="6">6 Months</option>
+        </select>
 
         {error && <p className="text-red-500 text-sm">{error}</p>}
 

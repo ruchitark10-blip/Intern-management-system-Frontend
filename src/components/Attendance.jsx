@@ -4,10 +4,8 @@ const Attendance = () => {
   const [interns, setInterns] = useState([]);
   const [attendance, setAttendance] = useState([]);
 
-  const [filterDate, setFilterDate] = useState("");
   const [filterIntern, setFilterIntern] = useState("");
 
-  // ================= FETCH DATA =================
   useEffect(() => {
     fetchInterns();
     fetchAttendance();
@@ -35,9 +33,8 @@ const Attendance = () => {
 
   // ================= FILTER =================
   const filteredData = attendance.filter((a) => {
-    const matchDate = filterDate ? a.date === filterDate : true;
     const matchIntern = filterIntern ? a.email === filterIntern : true;
-    return matchDate && matchIntern;
+    return matchIntern;
   });
 
   // ================= INTERN SUMMARY =================
@@ -66,13 +63,6 @@ const Attendance = () => {
       {/* ================= FILTERS ================= */}
       <div className="flex flex-wrap gap-4 mb-6">
 
-        <input
-          type="date"
-          value={filterDate}
-          onChange={(e) => setFilterDate(e.target.value)}
-          className="border px-3 py-2 rounded"
-        />
-
         <select
           value={filterIntern}
           onChange={(e) => setFilterIntern(e.target.value)}
@@ -88,7 +78,6 @@ const Attendance = () => {
 
         <button
           onClick={() => {
-            setFilterDate("");
             setFilterIntern("");
           }}
           className="px-3 py-2 bg-gray-200 rounded"
@@ -116,7 +105,6 @@ const Attendance = () => {
               <tr key={i} className="text-center border-t">
 
                 <td className="p-2 border">{intern.name}</td>
-
                 <td className="p-2 border">{intern.email}</td>
 
                 <td className="p-2 border">
@@ -163,7 +151,6 @@ const Attendance = () => {
                   </td>
 
                   <td className="p-2 border">{row.email}</td>
-
                   <td className="p-2 border">{row.date}</td>
 
                   <td className="p-2 border">

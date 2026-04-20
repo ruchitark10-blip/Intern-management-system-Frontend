@@ -3,6 +3,12 @@ import axios from "axios";
 
 const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
+// ✅ IST DATE FUNCTION (NEW)
+const getTodayIST = () =>
+  new Date().toLocaleDateString("en-CA", {
+    timeZone: "Asia/Kolkata",
+  });
+
 export default function App({ iemail }) {
   const [attendanceData, setAttendanceData] = useState({});
   const [selectedDate, setSelectedDate] = useState(null);
@@ -57,7 +63,8 @@ export default function App({ iemail }) {
 
         setAttendanceData(map);
 
-        const today = new Date().toISOString().split("T")[0];
+        // ✅ IST DATE FIX
+        const today = getTodayIST();
         const todayKey = `${iemail}_${today}`;
 
         setSelectedDate(today);
@@ -82,11 +89,11 @@ export default function App({ iemail }) {
     setPunchIn(attendanceData[key]?.checkIn || null);
   };
 
-  // ================= PUNCH IN (SUNDAY BLOCK ADDED) =================
+  // ================= PUNCH IN =================
   const handlePunchIn = async () => {
-    const today = new Date().getDay(); // 0 = Sunday
+    const todayDay = new Date().getDay();
 
-    if (today === 0) {
+    if (todayDay === 0) {
       alert("🚫 Sunday is a Holiday. Attendance not allowed.");
       return;
     }
@@ -120,14 +127,15 @@ export default function App({ iemail }) {
 
       setAttendanceData(map);
 
-      const todayDate = new Date().toISOString().split("T")[0];
+      // ✅ IST DATE FIX
+      const todayDate = getTodayIST();
       setPunchIn(map[`${intern.email}_${todayDate}`]?.checkIn || null);
     } catch (err) {
       alert(err.response?.data?.message || "Error");
     }
   };
 
-  // ================= COLOR LOGIC (SUNDAY ADDED) =================
+  // ================= COLOR LOGIC =================
   const getColor = (date) => {
     const fullDate = `${year}-${String(month + 1).padStart(2, "0")}-${String(
       date
@@ -138,7 +146,6 @@ export default function App({ iemail }) {
 
     const dayOfWeek = new Date(fullDate).getDay();
 
-    // 🔴 SUNDAY COLOR
     if (dayOfWeek === 0) {
       return "bg-red-300 text-white";
     }
