@@ -121,7 +121,7 @@ export default function Dashboard({ iemail }) {
 
           <div className="bg-[#1F2A5B] px-6 py-4">
             <h2 className="text-white font-semibold flex items-center gap-2">
-              <User size={18} /> Intern Profile Details
+              <User size={17} /> Intern Profile Details
             </h2>
           </div>
 
