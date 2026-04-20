@@ -27,7 +27,7 @@ export default function App({ iemail }) {
   useEffect(() => {
     const fetchIntern = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/interns");
+        const res = await axios.get("https://intern-management-system-backend-za7h.onrender.com/api/interns");
 
         const currentIntern = res.data.find(
           (i) =>
@@ -51,7 +51,7 @@ export default function App({ iemail }) {
     const loadData = async () => {
       try {
         const res = await axios.get(
-          "http://localhost:5000/api/attendance"
+          "https://intern-management-system-backend-za7h.onrender.com/api/attendance"
         );
 
         const map = {};
@@ -105,7 +105,7 @@ export default function App({ iemail }) {
       }
 
       const res = await axios.post(
-        "http://localhost:5000/api/attendance/check-in",
+        "https://intern-management-system-backend-za7h.onrender.com/api/attendance/check-in",
         {
           name: intern.name,
           email: intern.email,
@@ -115,7 +115,7 @@ export default function App({ iemail }) {
       alert(res.data?.message || "Success");
 
       const updated = await axios.get(
-        "http://localhost:5000/api/attendance"
+        "https://intern-management-system-backend-za7h.onrender.com/api/attendance"
       );
 
       const map = {};

@@ -19,7 +19,7 @@ export default function Dashboard({ memail }) {
   // FETCH MENTOR
   const fetchMentorByEmail = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/mentors");
+      const res = await fetch("https://intern-management-system-backend-za7h.onrender.com/api/mentors");
       const data = await res.json();
 
       const matchedMentor = data.find(
@@ -38,7 +38,7 @@ export default function Dashboard({ memail }) {
   // FETCH INTERNS
   const fetchInterns = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/interns");
+      const res = await fetch("https://intern-management-system-backend-za7h.onrender.com/api/interns");
       const backendData = await res.json();
 
       const sorted = Array.isArray(backendData)
@@ -56,7 +56,7 @@ export default function Dashboard({ memail }) {
   // ✅ FETCH TASKS (Dynamic)
   const fetchTasks = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/tasks");
+      const res = await fetch("https://intern-management-system-backend-za7h.onrender.com/api/tasks");
       const backendData = await res.json();
       setAllTasks(Array.isArray(backendData) ? backendData : []);
     } catch (err) {
@@ -97,7 +97,7 @@ export default function Dashboard({ memail }) {
   // ADD TASK
   const handleAddTask = async (taskPayload) => {
     try {
-      const response = await fetch("http://localhost:5000/api/tasks", {
+      const response = await fetch("https://intern-management-system-backend-za7h.onrender.com/api/tasks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(taskPayload),
@@ -121,7 +121,7 @@ export default function Dashboard({ memail }) {
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this intern?")) return;
     try {
-      await fetch(`http://localhost:5000/api/interns/${id}`, {
+      await fetch(`https://intern-management-system-backend-za7h.onrender.com/api/interns/${id}`, {
         method: "DELETE",
       });
       // Refresh both to keep counts accurate

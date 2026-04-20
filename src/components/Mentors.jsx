@@ -30,7 +30,7 @@ export default function MentorsTable() {
   const fetchMentors = async () => {
     try {
       setLoading(true);
-      const res = await fetch("http://localhost:5000/api/mentors");
+      const res = await fetch("https://intern-management-system-backend-za7h.onrender.com/api/mentors");
       const data = await res.json();
       setMentors(Array.isArray(data) ? data : []);
     } catch (err) {
@@ -86,7 +86,7 @@ export default function MentorsTable() {
     if (!window.confirm("Delete this mentor?")) return;
 
     try {
-      await fetch(`http://localhost:5000/api/mentors/${id}`, {
+      await fetch(`https://intern-management-system-backend-za7h.onrender.com/api/mentors/${id}`, {
         method: "DELETE",
       });
 
@@ -99,7 +99,7 @@ export default function MentorsTable() {
   // STATUS
   const handleStatusChange = async (id, newStatus) => {
     try {
-      await fetch(`http://localhost:5000/api/mentors/${id}`, {
+      await fetch(`https://intern-management-system-backend-za7h.onrender.com/api/mentors/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus }),

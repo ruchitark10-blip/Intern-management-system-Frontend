@@ -37,7 +37,7 @@ const App = ({ email }) => {
 
   const fetchInterns = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/interns");
+      const res = await fetch("https://intern-management-system-backend-za7h.onrender.com/api/interns");
       const data = await res.json();
       setInterns(Array.isArray(data) ? data : []);
     } catch (err) {
@@ -48,7 +48,7 @@ const App = ({ email }) => {
 
   const fetchMentors = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/mentors");
+      const res = await fetch("https://intern-management-system-backend-za7h.onrender.com/api/mentors");
       const data = await res.json();
       setMentors(Array.isArray(data) ? data : []);
     } catch (err) {
@@ -63,7 +63,7 @@ const App = ({ email }) => {
     if (!confirmDelete) return;
 
     try {
-      await fetch(`http://localhost:5000/api/interns/${id}`, {
+      await fetch(`https://intern-management-system-backend-za7h.onrender.com/api/interns/${id}`, {
         method: "DELETE",
       });
 

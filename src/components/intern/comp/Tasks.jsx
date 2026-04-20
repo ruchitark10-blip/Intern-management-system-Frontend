@@ -13,7 +13,7 @@ export default function TaskPage({ iemail }) {
     const loadTaskData = async () => {
       try {
         setLoading(true);
-        const internRes = await fetch("http://localhost:5000/api/interns");
+        const internRes = await fetch("https://intern-management-system-backend-za7h.onrender.com/api/interns");
         const interns = await internRes.json();
         const current = interns.find(i => i.email?.toLowerCase().trim() === iemail?.toLowerCase().trim());
 
@@ -23,7 +23,7 @@ export default function TaskPage({ iemail }) {
         }
         setInternData(current);
 
-        const taskRes = await fetch("http://localhost:5000/api/tasks");
+        const taskRes = await fetch("https://intern-management-system-backend-za7h.onrender.com/api/tasks");
         const allTasks = await taskRes.json();
 
         const myTasks = allTasks.filter(t => {

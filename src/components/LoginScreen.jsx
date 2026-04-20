@@ -15,7 +15,7 @@ const LoginScreen = ({ onLogin }) => {
     setIsLoading(true);
 
     try {
-      const res = await fetch("http://localhost:5000/auth/login", {
+      const res = await fetch("https://intern-management-system-backend-za7h.onrender.com/auth/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -51,7 +51,7 @@ const LoginScreen = ({ onLogin }) => {
     try {
       setIsForgotLoading(true);
 
-      const res = await fetch("http://localhost:5000/auth/forgot-password", {
+      const res = await fetch("https://intern-management-system-backend-za7h.onrender.com/auth/forgot-password", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"

@@ -18,7 +18,7 @@ export default function CertificateDashboard({ iemail }) {
   useEffect(() => {
     const fetchIntern = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/interns");
+        const res = await fetch("https://intern-management-system-backend-za7h.onrender.com/api/interns");
         const data = await res.json();
 
         const currentIntern = data.find(
@@ -210,10 +210,7 @@ export default function CertificateDashboard({ iemail }) {
             Download PDF
           </button>
 
-          <button className="w-full mt-4 flex justify-center gap-2 text-indigo-600 hover:underline">
-            <CiShare1 />
-            Verify Certificate
-          </button>
+          
 
         </div>
       </div>

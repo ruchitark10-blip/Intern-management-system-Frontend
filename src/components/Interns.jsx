@@ -24,7 +24,7 @@ export default function InternsPage() {
 
   const fetchInterns = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/interns");
+      const res = await fetch("https://intern-management-system-backend-za7h.onrender.com/api/interns");
       const data = await res.json();
       setInterns(data);
     } catch (err) {
@@ -34,7 +34,7 @@ export default function InternsPage() {
 
   const fetchMentors = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/mentors");
+      const res = await fetch("https://intern-management-system-backend-za7h.onrender.com/api/mentors");
       const data = await res.json();
       setMentors(data);
     } catch (err) {
@@ -44,7 +44,7 @@ export default function InternsPage() {
 
   const handleCertificateApprove = async (id) => {
     try {
-      await fetch(`http://localhost:5000/api/interns/${id}`, {
+      await fetch(`https://intern-management-system-backend-za7h.onrender.com/api/interns/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ certificate: true }),
@@ -83,7 +83,7 @@ export default function InternsPage() {
     const confirmed = window.confirm("Are you sure?");
     if (!confirmed) return;
 
-    await fetch(`http://localhost:5000/api/interns/${id}`, {
+    await fetch(`https://intern-management-system-backend-za7h.onrender.com/api/interns/${id}`, {
       method: "DELETE",
     });
 
@@ -95,7 +95,7 @@ export default function InternsPage() {
       prev.map((i) => (i._id === id ? { ...i, status: newStatus } : i))
     );
 
-    await fetch(`http://localhost:5000/api/interns/${id}`, {
+    await fetch(`https://intern-management-system-backend-za7h.onrender.com/api/interns/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status: newStatus }),
@@ -109,7 +109,7 @@ export default function InternsPage() {
       )
     );
 
-    await fetch(`http://localhost:5000/api/interns/${internId}`, {
+    await fetch(`https://intern-management-system-backend-za7h.onrender.com/api/interns/${internId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ mentor: newMentor }),

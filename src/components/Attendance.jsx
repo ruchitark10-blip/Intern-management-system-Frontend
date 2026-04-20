@@ -13,7 +13,7 @@ const Attendance = () => {
 
   const fetchInterns = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/interns");
+      const res = await fetch("https://intern-management-system-backend-za7h.onrender.com/api/interns");
       const data = await res.json();
       setInterns(Array.isArray(data) ? data : []);
     } catch (err) {
@@ -23,7 +23,7 @@ const Attendance = () => {
 
   const fetchAttendance = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/attendance");
+      const res = await fetch("https://intern-management-system-backend-za7h.onrender.com/api/attendance");
       const data = await res.json();
       setAttendance(Array.isArray(data) ? data : []);
     } catch (err) {
