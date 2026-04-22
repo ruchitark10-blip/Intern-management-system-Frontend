@@ -3,19 +3,12 @@ import axios from "axios";
 
 const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-// ✅ IST DATE FUNCTION (NEW)
-const getTodayIST = () =>
-  new Date().toLocaleDateString("en-CA", {
-    timeZone: "Asia/Kolkata",
-  });
-
 export default function App({ iemail }) {
   const [attendanceData, setAttendanceData] = useState({});
   const [selectedDate, setSelectedDate] = useState(null);
-  const [punchIn, setPunchIn] = useState(null);
   const [intern, setIntern] = useState(null);
-
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [loading, setLoading] = useState(false);
 
   const month = currentDate.getMonth();
   const year = currentDate.getFullYear();
@@ -23,23 +16,22 @@ export default function App({ iemail }) {
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const firstDay = new Date(year, month, 1).getDay();
 
+  const todayStr = new Date().toISOString().split("T")[0];
+
   // ================= FETCH INTERN =================
   useEffect(() => {
     const fetchIntern = async () => {
       try {
-        const res = await axios.get("https://intern-management-system-backend-za7h.onrender.com/api/interns");
+        const res = await axios.get("http://localhost:5000/api/interns");
 
-        const currentIntern = res.data.find(
+        const current = res.data.find(
           (i) =>
-            i.email?.toLowerCase().trim() ===
-            iemail?.toLowerCase().trim()
+            i.email?.toLowerCase().trim() === iemail?.toLowerCase().trim()
         );
 
-        if (currentIntern) {
-          setIntern(currentIntern);
-        }
+        if (current) setIntern(current);
       } catch (err) {
-        console.error("Intern fetch error", err);
+        console.error(err);
       }
     };
 
@@ -50,177 +42,215 @@ export default function App({ iemail }) {
   useEffect(() => {
     const loadData = async () => {
       try {
+        if (!iemail) return;
+
         const res = await axios.get(
-          "https://intern-management-system-backend-za7h.onrender.com/api/attendance"
+          `http://localhost:5000/api/attendance/${iemail}`
         );
 
         const map = {};
-
         res.data.forEach((item) => {
           const key = `${item.email}_${item.date}`;
           map[key] = item;
         });
 
         setAttendanceData(map);
-
-        // ✅ IST DATE FIX
-        const today = getTodayIST();
-        const todayKey = `${iemail}_${today}`;
-
-        setSelectedDate(today);
-        setPunchIn(map[todayKey]?.checkIn || null);
+        setSelectedDate(todayStr);
       } catch (err) {
-        console.error("Attendance load error", err);
+        console.error(err);
       }
     };
 
-    if (iemail) loadData();
+    loadData();
   }, [iemail]);
 
-  // ================= DATE CLICK =================
-  const handleDateClick = (date) => {
-    const fullDate = `${year}-${String(month + 1).padStart(2, "0")}-${String(
-      date
-    ).padStart(2, "0")}`;
+  const isTodaySelected = selectedDate === todayStr;
 
-    setSelectedDate(fullDate);
+  const record =
+    intern && selectedDate
+      ? attendanceData[`${intern.email}_${selectedDate}`]
+      : null;
 
-    const key = `${iemail}_${fullDate}`;
-    setPunchIn(attendanceData[key]?.checkIn || null);
+  const isSunday = selectedDate
+    ? new Date(selectedDate).getDay() === 0
+    : false;
+
+  // ================= PUNCH IN RULE =================
+  const canPunchInNow = () => {
+    const now = new Date();
+    const hour = now.getHours();
+    return hour >= 9 && hour < 10;
   };
 
-  // ================= PUNCH IN =================
-  const handlePunchIn = async () => {
-    const todayDay = new Date().getDay();
+  // ================= PUNCH OUT RULE (8 HOURS) =================
+  const getExpectedPunchOutTime = () => {
+    if (!record?.checkIn) return null;
+    return new Date(new Date(record.checkIn).getTime() + 8 * 60 * 60 * 1000);
+  };
 
-    if (todayDay === 0) {
-      alert("🚫 Sunday is a Holiday. Attendance not allowed.");
-      return;
-    }
+  const canPunchOutNow = () => {
+    const expected = getExpectedPunchOutTime();
+    if (!expected) return false;
+    return new Date() >= expected;
+  };
 
+  const formatTime = (date) =>
+    date
+      ? new Date(date).toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      : "";
+
+  // ================= PUNCH =================
+  const handlePunch = async (type) => {
     try {
-      if (!intern) {
-        alert("Intern not found");
-        return;
+      setLoading(true);
+
+      if (!intern || !isTodaySelected)
+        return alert("Only today's attendance allowed");
+
+      if (isSunday) return alert("Sunday Holiday 🚫");
+
+      if (type === "in" && !canPunchInNow())
+        return alert("Punch In only between 9–10 AM");
+
+      if (type === "out" && !canPunchOutNow()) {
+        const t = getExpectedPunchOutTime();
+        return alert(`Punch Out available at ${formatTime(t)}`);
       }
 
-      const res = await axios.post(
-        "https://intern-management-system-backend-za7h.onrender.com/api/attendance/check-in",
-        {
-          name: intern.name,
-          email: intern.email,
-        }
-      );
+      const url =
+        type === "in"
+          ? "http://localhost:5000/api/attendance/check-in"
+          : "http://localhost:5000/api/attendance/check-out";
 
-      alert(res.data?.message || "Success");
+      const body =
+        type === "in"
+          ? { name: intern.name, email: intern.email, date: selectedDate }
+          : { email: intern.email, date: selectedDate };
 
-      const updated = await axios.get(
-        "https://intern-management-system-backend-za7h.onrender.com/api/attendance"
+      await axios.post(url, body);
+
+      const refresh = await axios.get(
+        `http://localhost:5000/api/attendance/${iemail}`
       );
 
       const map = {};
-
-      updated.data.forEach((item) => {
+      refresh.data.forEach((item) => {
         const key = `${item.email}_${item.date}`;
         map[key] = item;
       });
 
       setAttendanceData(map);
-
-      // ✅ IST DATE FIX
-      const todayDate = getTodayIST();
-      setPunchIn(map[`${intern.email}_${todayDate}`]?.checkIn || null);
     } catch (err) {
       alert(err.response?.data?.message || "Error");
+    } finally {
+      setLoading(false);
     }
+  };
+
+  // ================= STATUS =================
+  const getStatus = () => {
+    if (isSunday) return "Holiday";
+
+    if (!record?.checkIn) return "Absent";
+
+    if (record?.checkIn && record?.checkOut) return "Completed";
+
+    const hour = new Date(record.checkIn).getHours();
+
+    if (hour > 10) return "Half Day";
+
+    return "Present";
   };
 
   // ================= COLOR LOGIC =================
   const getColor = (date) => {
-    const fullDate = `${year}-${String(month + 1).padStart(2, "0")}-${String(
+    const full = `${year}-${String(month + 1).padStart(2, "0")}-${String(
       date
     ).padStart(2, "0")}`;
 
-    const key = `${iemail}_${fullDate}`;
-    const record = attendanceData[key];
+    const rec = intern && attendanceData[`${intern.email}_${full}`];
 
-    const dayOfWeek = new Date(fullDate).getDay();
+    const day = new Date(year, month, date).getDay();
 
-    if (dayOfWeek === 0) {
-      return "bg-red-300 text-white";
+    if (day === 0) return "bg-red-300 text-red-700";
+
+    // 🔵 COMPLETED
+    if (rec?.checkIn && rec?.checkOut) {
+      return "bg-blue-500 text-white";
     }
 
-    if (record?.checkIn) return "bg-green-400 text-white";
+    // 🟡/🟢 PRESENT OR HALF DAY
+    if (rec?.checkIn) {
+      const hour = new Date(rec.checkIn).getHours();
+      return hour > 10
+        ? "bg-yellow-400 text-black"
+        : "bg-green-500 text-white";
+    }
 
     return "bg-white border";
   };
 
+  const isDisabled = (date) => {
+    const full = `${year}-${String(month + 1).padStart(2, "0")}-${String(
+      date
+    ).padStart(2, "0")}`;
+
+    return new Date(year, month, date).getDay() === 0 || full !== todayStr;
+  };
+
+  const expectedOut = getExpectedPunchOutTime();
+
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
+
       <h1 className="font-semibold text-lg mb-4">
         Attendance {intern?.name && `- ${intern.name}`}
       </h1>
 
       <div className="grid grid-cols-3 gap-6">
-        {/* LEFT */}
-        <div className="col-span-2 bg-white p-5 rounded-xl shadow-sm border">
-          
-          {/* MONTH NAV */}
-          <div className="flex justify-between mb-4 items-center">
-            <button
-              onClick={() => setCurrentDate(new Date(year, month - 1, 1))}
-              className="px-3 py-1 bg-blue-500 text-white rounded"
-            >
-              ‹
-            </button>
 
-            <h2 className="font-medium">
+        {/* CALENDAR */}
+        <div className="col-span-2 bg-white p-5 rounded-xl shadow border">
+
+          <div className="flex justify-between mb-4">
+            <button onClick={() => setCurrentDate(new Date(year, month - 1, 1))}>‹</button>
+            <h2>
               {currentDate.toLocaleString("default", {
                 month: "long",
                 year: "numeric",
               })}
             </h2>
-
-            <button
-              onClick={() => setCurrentDate(new Date(year, month + 1, 1))}
-              className="px-3 py-1 bg-gray-200 rounded"
-            >
-              ›
-            </button>
+            <button onClick={() => setCurrentDate(new Date(year, month + 1, 1))}>›</button>
           </div>
 
-          {/* DAYS */}
           <div className="grid grid-cols-7 gap-2 mb-3">
-            {days.map((day) => (
-              <div
-                key={day}
-                className="text-center text-sm border p-2 rounded-lg font-medium bg-gray-50"
-              >
-                {day}
-              </div>
+            {days.map((d) => (
+              <div key={d} className="text-center border p-2">{d}</div>
             ))}
           </div>
 
-          {/* CALENDAR */}
           <div className="grid grid-cols-7 gap-2">
-            {[...Array(firstDay)].map((_, i) => (
-              <div key={i}></div>
-            ))}
+            {[...Array(firstDay)].map((_, i) => <div key={i}></div>)}
 
             {[...Array(daysInMonth)].map((_, i) => {
               const date = i + 1;
 
-              const isToday =
-                date === new Date().getDate() &&
-                month === new Date().getMonth() &&
-                year === new Date().getFullYear();
-
               return (
                 <button
                   key={date}
-                  onClick={() => handleDateClick(date)}
+                  onClick={() =>
+                    setSelectedDate(
+                      `${year}-${String(month + 1).padStart(2, "0")}-${String(
+                        date
+                      ).padStart(2, "0")}`
+                    )
+                  }
+                  disabled={isDisabled(date)}
                   className={`h-10 w-10 rounded-full ${getColor(date)} ${
-                    isToday ? "border-2 border-blue-500" : ""
+                    isDisabled(date) ? "opacity-50 cursor-not-allowed" : ""
                   }`}
                 >
                   {date}
@@ -230,43 +260,54 @@ export default function App({ iemail }) {
           </div>
         </div>
 
-        {/* RIGHT */}
-        <div className="p-5 rounded-xl border bg-white shadow-sm">
-          <p className="mb-2">
-            Status:{" "}
-            {punchIn ? (
-              <span className="text-green-600 font-semibold">Done ✅</span>
-            ) : (
-              <span className="text-gray-500">Not Marked</span>
-            )}
-          </p>
+        {/* STATUS */}
+        <div className="bg-white border rounded-xl shadow p-4 h-fit">
 
-          <p>
-            Punch In:{" "}
-            {punchIn ? new Date(punchIn).toLocaleTimeString() : "-"}
-          </p>
+          <h2 className="text-xs text-gray-500 mb-2">Status</h2>
 
-          {punchIn && (
-            <div className="bg-green-100 text-green-700 p-2 rounded mt-3">
-              Attendance Marked Successfully ✅
-            </div>
+          <div className={`p-2 rounded text-center font-semibold text-sm
+            ${
+              !record?.checkIn
+                ? "bg-gray-100 text-gray-600"
+                : record?.checkIn && record?.checkOut
+                ? "bg-blue-100 text-blue-600"
+                : new Date(record.checkIn).getHours() > 10
+                ? "bg-yellow-100 text-yellow-700"
+                : "bg-green-100 text-green-700"
+            }
+          `}>
+            {getStatus()}
+          </div>
+
+          {expectedOut && record?.checkIn && !record?.checkOut && (
+            <p className="text-xs mt-2 text-gray-500">
+              ⏰ Punch Out: <b>{formatTime(expectedOut)}</b>
+            </p>
           )}
+
         </div>
+
       </div>
 
-      {/* BUTTON */}
-      <div className="bg-white border mt-6 p-5 rounded-xl shadow-sm">
+      {/* BUTTONS */}
+      <div className="bg-white border mt-6 p-5 rounded-xl">
+
         <button
-          onClick={handlePunchIn}
-          disabled={punchIn}
-          className={`w-full py-2 rounded-lg ${
-            punchIn
-              ? "bg-gray-400 cursor-not-allowed"
-              : "bg-blue-600 text-white hover:bg-blue-700"
-          }`}
+          onClick={() => handlePunch("in")}
+          disabled={!isTodaySelected || record?.checkIn || loading || isSunday}
+          className="w-full bg-blue-600 text-white py-2 rounded"
         >
-          {punchIn ? "Already Checked In" : "Punch In"}
+          {loading ? "Processing..." : "Punch In"}
         </button>
+
+        <button
+          onClick={() => handlePunch("out")}
+          disabled={!isTodaySelected || record?.checkOut || loading || isSunday || !canPunchOutNow()}
+          className="w-full mt-3 bg-red-600 text-white py-2 rounded"
+        >
+          {loading ? "Processing..." : "Punch Out"}
+        </button>
+
       </div>
     </div>
   );

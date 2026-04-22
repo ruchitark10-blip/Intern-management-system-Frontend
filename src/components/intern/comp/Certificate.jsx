@@ -99,7 +99,7 @@ export default function CertificateDashboard({ iemail }) {
             Welcome {intern?.name}
           </p>
         </div>
-        <Bell />
+        {/* <Bell /> */}
       </div>
 
       <div className="p-6 grid md:grid-cols-2 gap-6">
