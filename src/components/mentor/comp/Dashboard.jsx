@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Users, ClipboardList, ClipboardClock, Eye, Trash2 } from "lucide-react";
-import AddTaskModal from "./Addtaskmodal";
+import AddTaskModal from "./AddTaskModal";
 
 // ✅ Helper to get Initials from Name or Email (Same as Intern Dashboard logic)
 const getInitials = (name, email) => {

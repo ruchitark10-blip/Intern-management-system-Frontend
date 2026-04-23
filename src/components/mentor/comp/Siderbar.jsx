@@ -21,7 +21,7 @@ const Sidebar = ({ active, setActive, sidebarOpen, setSidebarOpen, onLogout }) =
       icon: FaUsers,
     },
     {
-      name: "Assigned Task",
+      name: "Assign Task",
       icon: LiaListAltSolid,
     },
     /* ---------------------------------------------------------
