@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import AddTaskModal from "./AddtaskModal";
+import AddTaskModal from "./Addtaskmodal";
 
 // ✅ Helper to get Initials from Name or Email
 const getInitials = (name, email) => {
