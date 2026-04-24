@@ -30,7 +30,7 @@ export default function Dashboard({ iemail }) {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const internRes = await fetch("https://intern-management-system-backend-za7h.onrender.com/api/interns");
+        const internRes = await fetch("http://localhost:5000/api/interns");
         const interns = await internRes.json();
 
         const currentIntern = interns.find(
@@ -41,7 +41,7 @@ export default function Dashboard({ iemail }) {
 
         setInternData(currentIntern);
 
-        const taskRes = await fetch("https://intern-management-system-backend-za7h.onrender.com/api/tasks");
+        const taskRes = await fetch("http://localhost:5000/api/tasks");
         const allTasks = await taskRes.json();
 
         const internTasks = allTasks.filter((t) => {

@@ -25,7 +25,7 @@ export default function AddInternModal({ onClose }) {
 
   const fetchMentors = async () => {
     try {
-      const res = await fetch("https://intern-management-system-backend-za7h.onrender.com/api/mentors");
+      const res = await fetch("http://localhost:5000/api/mentors");
       const data = await res.json();
       setMentorsList(data);
     } catch (err) {
@@ -72,7 +72,7 @@ export default function AddInternModal({ onClose }) {
     };
 
     try {
-      const response = await fetch("https://intern-management-system-backend-za7h.onrender.com/api/interns", {
+      const response = await fetch("http://localhost:5000/api/interns", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

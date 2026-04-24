@@ -33,7 +33,7 @@ export default function Companies({ memail }) {
   // FETCH MENTOR PROFILE
   const fetchMentor = async () => {
     try {
-      const res = await fetch("https://intern-management-system-backend-za7h.onrender.com/api/mentors");
+      const res = await fetch("http://localhost:5000/api/mentors");
       const data = await res.json();
       const match = data.find(
         (m) => m.email?.toLowerCase().trim() === memail?.toLowerCase().trim()
@@ -49,7 +49,7 @@ export default function Companies({ memail }) {
   // FETCH INTERNS
   const fetchInterns = async () => {
     try {
-      const res = await fetch("https://intern-management-system-backend-za7h.onrender.com/api/interns");
+      const res = await fetch("http://localhost:5000/api/interns");
       const data = await res.json();
       setInterns(Array.isArray(data) ? data : []);
     } catch (err) {
@@ -60,7 +60,7 @@ export default function Companies({ memail }) {
   // FETCH ALL TASKS
   const fetchTasks = async () => {
     try {
-      const res = await fetch("https://intern-management-system-backend-za7h.onrender.com/api/tasks");
+      const res = await fetch("http://localhost:5000/api/tasks");
       const backendData = await res.json();
       const safe = Array.isArray(backendData) ? backendData : [];
       setAllTasks(safe);
@@ -127,7 +127,7 @@ export default function Companies({ memail }) {
     const parts = newDateISO.split("-");
     const formattedDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
     try {
-      const res = await fetch(`https://intern-management-system-backend-za7h.onrender.com/api/tasks/${taskId}`, {
+      const res = await fetch(`http://localhost:5000/api/tasks/${taskId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ deadline: formattedDate }),
@@ -144,7 +144,7 @@ export default function Companies({ memail }) {
 
   const handleUpdateStatus = async (taskId, newStatus) => {
     try {
-      const res = await fetch(`https://intern-management-system-backend-za7h.onrender.com/api/tasks/${taskId}`, {
+      const res = await fetch(`http://localhost:5000/api/tasks/${taskId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus }),
@@ -162,7 +162,7 @@ export default function Companies({ memail }) {
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this task?")) return;
     try {
-      await fetch(`https://intern-management-system-backend-za7h.onrender.com/api/tasks/${id}`, { method: "DELETE" });
+      await fetch(`http://localhost:5000/api/tasks/${id}`, { method: "DELETE" });
       setAllTasks((prev) => prev.filter((t) => t._id !== id));
     } catch (err) {
       console.error("Delete error:", err);

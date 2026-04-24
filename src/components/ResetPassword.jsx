@@ -12,7 +12,7 @@ const ResetPassword = () => {
 
     try {
       const res = await fetch(
-        `https://intern-management-system-backend-za7h.onrender.com/auth/reset-password/${token}`,
+        `http://localhost:5000/auth/reset-password/${token}`,
         {
           method: "POST",
           headers: {

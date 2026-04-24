@@ -18,7 +18,7 @@ export default function CertificateDashboard({ iemail }) {
   useEffect(() => {
     const fetchIntern = async () => {
       try {
-        const res = await fetch("https://intern-management-system-backend-za7h.onrender.com/api/interns");
+        const res = await fetch("http://localhost:5000/api/interns");
         const data = await res.json();
 
         const currentIntern = data.find(

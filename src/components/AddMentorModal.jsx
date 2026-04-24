@@ -53,7 +53,7 @@ export default function AddMentorModal({ onAdd, onClose, initialData = null }) {
     setLoading(true);
 
     try {
-      const response = await fetch("https://intern-management-system-backend-za7h.onrender.com/api/mentors", {
+      const response = await fetch("http://localhost:5000/api/mentors", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"

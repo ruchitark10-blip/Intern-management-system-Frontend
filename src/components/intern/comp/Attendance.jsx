@@ -3,8 +3,14 @@ import axios from "axios";
 
 const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-// ✅ CHANGE THIS IF DEPLOYED
 const BASE_URL = "http://localhost:5000/api";
+
+// ✅ IST DATE HELPER (GLOBAL FIX)
+const getISTDate = (date = new Date()) => {
+  return new Date(date).toLocaleDateString("en-CA", {
+    timeZone: "Asia/Kolkata",
+  });
+};
 
 export default function App({ iemail }) {
   const [attendanceData, setAttendanceData] = useState({});
@@ -16,8 +22,8 @@ export default function App({ iemail }) {
   const month = currentDate.getMonth();
   const year = currentDate.getFullYear();
 
-  const today = new Date();
-  const todayStr = today.toISOString().split("T")[0];
+  // ✅ FIXED TODAY STRING
+  const todayStr = getISTDate();
 
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const firstDay = new Date(year, month, 1).getDay();
@@ -63,7 +69,9 @@ export default function App({ iemail }) {
         });
 
         setAttendanceData(map);
-        setSelectedDate(todayStr);
+
+        // ✅ USE IST DATE
+        setSelectedDate(getISTDate());
       } catch (err) {
         console.error(err);
       }
@@ -77,11 +85,12 @@ export default function App({ iemail }) {
       ? attendanceData[`${intern.email}_${selectedDate}`]
       : null;
 
+  // ✅ FIXED SUNDAY CHECK (IST SAFE)
   const isSunday = selectedDate
-    ? new Date(selectedDate).getDay() === 0
+    ? new Date(selectedDate + "T00:00:00").getDay() === 0
     : false;
 
-  // ================= ✅ IST TIME FIX =================
+  // ================= TIME FORMAT =================
   const formatTime = (date) => {
     if (!date) return "";
 
@@ -118,7 +127,6 @@ export default function App({ iemail }) {
 
       await axios.post(url, body);
 
-      // refresh
       const refresh = await axios.get(
         `${BASE_URL}/attendance/${iemail}`
       );
@@ -139,12 +147,12 @@ export default function App({ iemail }) {
 
   // ================= DATE HELPERS =================
   const isPastDate = (date) => {
-    const full = new Date(year, month, date);
+    const fullDate = `${year}-${String(month + 1).padStart(2, "0")}-${String(
+      date
+    ).padStart(2, "0")}`;
 
-    const todayCopy = new Date();
-    todayCopy.setHours(0, 0, 0, 0);
-
-    return full < todayCopy;
+    // ✅ COMPARE USING IST STRINGS
+    return fullDate < todayStr;
   };
 
   // ================= COLOR =================
@@ -154,14 +162,13 @@ export default function App({ iemail }) {
     ).padStart(2, "0")}`;
 
     const rec = intern && attendanceData[`${intern.email}_${fullDate}`];
-    const day = new Date(year, month, date).getDay();
+    const day = new Date(fullDate + "T00:00:00").getDay();
 
-    // ✅ Selected (today)
     if (selectedDate === fullDate) {
       return "bg-green-600 text-white border-2 border-black";
     }
 
-    if (isPastDate(date)) return "bg-red-200 text-red-700";
+    if (fullDate < todayStr) return "bg-red-200 text-red-700";
     if (day === 0) return "bg-red-300 text-red-700";
 
     if (rec?.checkIn && rec?.checkOut) return "bg-blue-500 text-white";
@@ -172,8 +179,13 @@ export default function App({ iemail }) {
 
   // ================= DISABLE =================
   const isDisabled = (date) => {
-    const day = new Date(year, month, date).getDay();
-    return day === 0 || isPastDate(date);
+    const fullDate = `${year}-${String(month + 1).padStart(2, "0")}-${String(
+      date
+    ).padStart(2, "0")}`;
+
+    const day = new Date(fullDate + "T00:00:00").getDay();
+
+    return day === 0 || fullDate < todayStr;
   };
 
   return (

@@ -1,4 +1,4 @@
-const BASE_URL = "https://intern-management-system-backend-za7h.onrender.com"; // adjust if needed
+const BASE_URL = "http://localhost:5000"; // adjust if needed
 
 export const loginUser = async (endpoint, credentials) => {
   const response = await fetch(`${BASE_URL}${endpoint}`, {

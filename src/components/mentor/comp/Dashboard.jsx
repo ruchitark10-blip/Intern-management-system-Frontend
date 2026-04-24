@@ -27,7 +27,7 @@ export default function Dashboard({ memail }) {
   // ✅ FETCH MENTOR PROFILE (Matches your Intern Dashboard logic)
   const fetchMentorProfile = async () => {
     try {
-      const res = await fetch("https://intern-management-system-backend-za7h.onrender.com/api/mentors");
+      const res = await fetch("http://localhost:5000/api/mentors");
       const mentors = await res.json();
 
       const currentMentor = mentors.find(
@@ -44,7 +44,7 @@ export default function Dashboard({ memail }) {
 
   const fetchInterns = async () => {
     try {
-      const res = await fetch("https://intern-management-system-backend-za7h.onrender.com/api/interns");
+      const res = await fetch("http://localhost:5000/api/interns");
       const backendData = await res.json();
       setAllInterns(Array.isArray(backendData) ? backendData.sort((a, b) => new Date(b.joinedDate) - new Date(a.joinedDate)) : []);
     } catch (err) { console.error(err); }
@@ -52,7 +52,7 @@ export default function Dashboard({ memail }) {
 
   const fetchTasks = async () => {
     try {
-      const res = await fetch("https://intern-management-system-backend-za7h.onrender.com/api/tasks");
+      const res = await fetch("http://localhost:5000/api/tasks");
       const backendData = await res.json();
       setAllTasks(Array.isArray(backendData) ? backendData : []);
     } catch (err) { console.error(err); }
@@ -180,7 +180,7 @@ export default function Dashboard({ memail }) {
           intern={selectedIntern} 
           onClose={() => setIsTaskModalOpen(false)} 
           onAddTask={async (payload) => {
-            await fetch("https://intern-management-system-backend-za7h.onrender.com/api/tasks", {
+            await fetch("http://localhost:5000/api/tasks", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify(payload),

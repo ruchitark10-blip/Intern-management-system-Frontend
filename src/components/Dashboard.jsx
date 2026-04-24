@@ -46,19 +46,19 @@ const App = ({ email }) => {
   }, []);
 
   const fetchInterns = async () => {
-    const res = await fetch("https://intern-management-system-backend-za7h.onrender.com/api/interns");
+    const res = await fetch("http://localhost:5000/api/interns");
     const data = await res.json();
     setInterns(Array.isArray(data) ? data : []);
   };
 
   const fetchMentors = async () => {
-    const res = await fetch("https://intern-management-system-backend-za7h.onrender.com/api/mentors");
+    const res = await fetch("http://localhost:5000/api/mentors");
     const data = await res.json();
     setMentors(Array.isArray(data) ? data : []);
   };
 
   const fetchAttendance = async () => {
-    const res = await fetch("https://intern-management-system-backend-za7h.onrender.com/api/attendance");
+    const res = await fetch("http://localhost:5000/api/attendance");
     const data = await res.json();
     setAttendance(Array.isArray(data) ? data : []);
   };
@@ -100,7 +100,7 @@ const App = ({ email }) => {
   const handleDelete = async (id) => {
     if (!window.confirm("Delete this intern?")) return;
 
-    await fetch(`https://intern-management-system-backend-za7h.onrender.com/api/interns/${id}`, {
+    await fetch(`http://localhost:5000/api/interns/${id}`, {
       method: "DELETE",
     });
 
