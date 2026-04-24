@@ -12,6 +12,18 @@ const Attendance = () => {
     fetchAttendance();
   }, []);
 
+  // ================= IST TIME FORMAT =================
+  const formatIST = (date) => {
+    if (!date) return "-";
+
+    return new Date(date).toLocaleString("en-IN", {
+      timeZone: "Asia/Kolkata",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    });
+  };
+
   // ================= FETCH INTERNS =================
   const fetchInterns = async () => {
     try {
@@ -92,7 +104,7 @@ const Attendance = () => {
     );
   }, [tableData, filterIntern]);
 
-  // ================= STATS (UPDATED - NO LATE) =================
+  // ================= STATS =================
   const stats = useMemo(() => {
     const total = tableData.length;
 
@@ -113,12 +125,8 @@ const Attendance = () => {
       Name: a.name,
       Email: a.email,
       Date: a.date,
-      "Check In": a.checkIn
-        ? new Date(a.checkIn).toLocaleTimeString()
-        : "-",
-      "Check Out": a.checkOut
-        ? new Date(a.checkOut).toLocaleTimeString()
-        : "-",
+      "Check In": a.checkIn ? formatIST(a.checkIn) : "-",
+      "Check Out": a.checkOut ? formatIST(a.checkOut) : "-",
       Status: a.status,
     }));
 
@@ -145,7 +153,7 @@ const Attendance = () => {
         📊 Attendance Dashboard
       </h1>
 
-      {/* ================= STATS (NO LATE CARD) ================= */}
+      {/* STATS */}
       <div className="grid grid-cols-3 gap-4 mb-6">
 
         <div className="bg-white p-4 border rounded shadow">
@@ -222,15 +230,11 @@ const Attendance = () => {
                 <td className="border p-2 font-semibold">{row.date}</td>
 
                 <td className="border p-2">
-                  {row.checkIn
-                    ? new Date(row.checkIn).toLocaleTimeString()
-                    : "-"}
+                  {row.checkIn ? formatIST(row.checkIn) : "-"}
                 </td>
 
                 <td className="border p-2">
-                  {row.checkOut
-                    ? new Date(row.checkOut).toLocaleTimeString()
-                    : "-"}
+                  {row.checkOut ? formatIST(row.checkOut) : "-"}
                 </td>
 
                 <td className="border p-2">
