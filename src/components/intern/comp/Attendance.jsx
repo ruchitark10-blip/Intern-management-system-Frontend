@@ -3,6 +3,9 @@ import axios from "axios";
 
 const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
+// ✅ CHANGE THIS IF DEPLOYED
+const BASE_URL = "http://localhost:5000/api";
+
 export default function App({ iemail }) {
   const [attendanceData, setAttendanceData] = useState({});
   const [selectedDate, setSelectedDate] = useState(null);
@@ -27,9 +30,7 @@ export default function App({ iemail }) {
       try {
         if (!iemail) return;
 
-        const res = await axios.get(
-          "https://intern-management-system-backend-za7h.onrender.com/api/interns"
-        );
+        const res = await axios.get(`${BASE_URL}/interns`);
 
         const current = res.data.find(
           (i) =>
@@ -52,7 +53,7 @@ export default function App({ iemail }) {
         if (!iemail) return;
 
         const res = await axios.get(
-          `https://intern-management-system-backend-za7h.onrender.com/api/attendance/${iemail}`
+          `${BASE_URL}/attendance/${iemail}`
         );
 
         const map = {};
@@ -64,7 +65,7 @@ export default function App({ iemail }) {
         setAttendanceData(map);
         setSelectedDate(todayStr);
       } catch (err) {
-        console.error(err.response || err.message);
+        console.error(err);
       }
     };
 
@@ -80,7 +81,7 @@ export default function App({ iemail }) {
     ? new Date(selectedDate).getDay() === 0
     : false;
 
-  // ================= ✅ FIXED TIME FORMAT =================
+  // ================= ✅ IST TIME FIX =================
   const formatTime = (date) => {
     if (!date) return "";
 
@@ -107,8 +108,8 @@ export default function App({ iemail }) {
 
       const url =
         type === "in"
-          ? "https://intern-management-system-backend-za7h.onrender.com/api/attendance/check-in"
-          : "https://intern-management-system-backend-za7h.onrender.com/api/attendance/check-out";
+          ? `${BASE_URL}/attendance/check-in`
+          : `${BASE_URL}/attendance/check-out`;
 
       const body =
         type === "in"
@@ -117,8 +118,9 @@ export default function App({ iemail }) {
 
       await axios.post(url, body);
 
+      // refresh
       const refresh = await axios.get(
-        `https://intern-management-system-backend-za7h.onrender.com/api/attendance/${iemail}`
+        `${BASE_URL}/attendance/${iemail}`
       );
 
       const map = {};
@@ -154,22 +156,16 @@ export default function App({ iemail }) {
     const rec = intern && attendanceData[`${intern.email}_${fullDate}`];
     const day = new Date(year, month, date).getDay();
 
-    // ✅ Selected date
+    // ✅ Selected (today)
     if (selectedDate === fullDate) {
       return "bg-green-600 text-white border-2 border-black";
     }
 
-    // 🔴 Past
     if (isPastDate(date)) return "bg-red-200 text-red-700";
-
-    // 🔴 Sunday
     if (day === 0) return "bg-red-300 text-red-700";
 
-    // 🔵 Completed
     if (rec?.checkIn && rec?.checkOut) return "bg-blue-500 text-white";
-
-    // 🟢 Checked in
-    if (rec?.checkIn) return "bg-green-500 text-white";
+    if (rec?.checkIn) return "bg-green-400 text-white";
 
     return "bg-white border";
   };
