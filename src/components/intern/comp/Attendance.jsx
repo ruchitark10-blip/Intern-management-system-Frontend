@@ -80,13 +80,17 @@ export default function App({ iemail }) {
     ? new Date(selectedDate).getDay() === 0
     : false;
 
-  const formatTime = (date) =>
-    date
-      ? new Date(date).toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        })
-      : "";
+  // ================= ✅ FIXED TIME FORMAT =================
+  const formatTime = (date) => {
+    if (!date) return "";
+
+    return new Date(date).toLocaleTimeString("en-IN", {
+      timeZone: "Asia/Kolkata",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    });
+  };
 
   // ================= PUNCH =================
   const handlePunch = async (type) => {
@@ -125,7 +129,6 @@ export default function App({ iemail }) {
 
       setAttendanceData(map);
     } catch (err) {
-      console.log(err.response);
       alert(err.response?.data?.message || "Error");
     } finally {
       setLoading(false);
@@ -151,12 +154,12 @@ export default function App({ iemail }) {
     const rec = intern && attendanceData[`${intern.email}_${fullDate}`];
     const day = new Date(year, month, date).getDay();
 
-    // ✅ Selected date highlight
+    // ✅ Selected date
     if (selectedDate === fullDate) {
       return "bg-green-600 text-white border-2 border-black";
     }
 
-    // 🔴 Past dates
+    // 🔴 Past
     if (isPastDate(date)) return "bg-red-200 text-red-700";
 
     // 🔴 Sunday
