@@ -13,10 +13,11 @@ export default function App({ iemail }) {
   const month = currentDate.getMonth();
   const year = currentDate.getFullYear();
 
+  const today = new Date();
+  const todayStr = today.toISOString().split("T")[0];
+
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const firstDay = new Date(year, month, 1).getDay();
-
-  const todayStr = new Date().toISOString().split("T")[0];
 
   const isTodaySelected = selectedDate === todayStr;
 
@@ -24,20 +25,24 @@ export default function App({ iemail }) {
   useEffect(() => {
     const fetchIntern = async () => {
       try {
-        const res = await axios.get("https://intern-management-system-backend-za7h.onrender.com/api/interns");
+        if (!iemail) return;
+
+        const res = await axios.get(
+          "https://intern-management-system-backend-za7h.onrender.com/api/interns"
+        );
 
         const current = res.data.find(
           (i) =>
             i.email?.toLowerCase().trim() === iemail?.toLowerCase().trim()
         );
 
-        if (current) setIntern(current);
+        setIntern(current);
       } catch (err) {
         console.error(err);
       }
     };
 
-    if (iemail) fetchIntern();
+    fetchIntern();
   }, [iemail]);
 
   // ================= LOAD ATTENDANCE =================
@@ -47,7 +52,7 @@ export default function App({ iemail }) {
         if (!iemail) return;
 
         const res = await axios.get(
-          `"https://intern-management-system-backend-za7h.onrender.com/api/attendance/${iemail}`
+          `https://intern-management-system-backend-za7h.onrender.com/api/attendance/${iemail}`
         );
 
         const map = {};
@@ -59,7 +64,7 @@ export default function App({ iemail }) {
         setAttendanceData(map);
         setSelectedDate(todayStr);
       } catch (err) {
-        console.error(err);
+        console.error(err.response || err.message);
       }
     };
 
@@ -90,9 +95,8 @@ export default function App({ iemail }) {
 
       if (!intern) return alert("Intern not found");
 
-      // 🔒 ONLY TODAY
       if (!isTodaySelected) {
-        return alert("You can only mark attendance for today");
+        return alert("Only today's attendance allowed");
       }
 
       if (isSunday) return alert("Sunday Holiday 🚫");
@@ -121,57 +125,56 @@ export default function App({ iemail }) {
 
       setAttendanceData(map);
     } catch (err) {
+      console.log(err.response);
       alert(err.response?.data?.message || "Error");
     } finally {
       setLoading(false);
     }
   };
 
-  // ================= STATUS =================
-  const getStatus = () => {
-    if (isSunday) return "Holiday";
+  // ================= DATE HELPERS =================
+  const isPastDate = (date) => {
+    const full = new Date(year, month, date);
 
-    if (!record?.checkIn) {
-      return selectedDate === todayStr ? "Not Marked" : "Absent";
-    }
+    const todayCopy = new Date();
+    todayCopy.setHours(0, 0, 0, 0);
 
-    if (record?.checkIn && !record?.checkOut) {
-      return "In Progress";
-    }
-
-    if (record?.checkIn && record?.checkOut) {
-      const hour = new Date(record.checkIn).getHours();
-      return hour > 10 ? "Half Day" : "Completed";
-    }
-
-    return "Absent";
+    return full < todayCopy;
   };
 
   // ================= COLOR =================
   const getColor = (date) => {
-    const full = `${year}-${String(month + 1).padStart(2, "0")}-${String(
+    const fullDate = `${year}-${String(month + 1).padStart(2, "0")}-${String(
       date
     ).padStart(2, "0")}`;
 
-    const rec = intern && attendanceData[`${intern.email}_${full}`];
+    const rec = intern && attendanceData[`${intern.email}_${fullDate}`];
     const day = new Date(year, month, date).getDay();
 
+    // ✅ Selected date highlight
+    if (selectedDate === fullDate) {
+      return "bg-green-600 text-white border-2 border-black";
+    }
+
+    // 🔴 Past dates
+    if (isPastDate(date)) return "bg-red-200 text-red-700";
+
+    // 🔴 Sunday
     if (day === 0) return "bg-red-300 text-red-700";
 
-    if (rec?.checkIn && rec?.checkOut) {
-      return "bg-blue-500 text-white";
-    }
+    // 🔵 Completed
+    if (rec?.checkIn && rec?.checkOut) return "bg-blue-500 text-white";
 
-    if (rec?.checkIn) {
-      return "bg-green-500 text-white";
-    }
+    // 🟢 Checked in
+    if (rec?.checkIn) return "bg-green-500 text-white";
 
     return "bg-white border";
   };
 
-  // ================= DISABLE ONLY SUNDAY =================
+  // ================= DISABLE =================
   const isDisabled = (date) => {
-    return new Date(year, month, date).getDay() === 0;
+    const day = new Date(year, month, date).getDay();
+    return day === 0 || isPastDate(date);
   };
 
   return (
@@ -237,7 +240,7 @@ export default function App({ iemail }) {
           <h2 className="text-xs text-gray-500 mb-2">Status</h2>
 
           <div className="p-2 rounded text-center font-semibold text-sm bg-gray-100">
-            {getStatus()}
+            {isSunday ? "Holiday" : record?.checkIn ? "Marked" : "Not Marked"}
           </div>
 
           {record?.checkIn && (
@@ -252,11 +255,6 @@ export default function App({ iemail }) {
             </p>
           )}
 
-          {!isTodaySelected && (
-            <p className="text-xs text-gray-500 mt-2">
-              Attendance can only be marked for today
-            </p>
-          )}
         </div>
 
       </div>
