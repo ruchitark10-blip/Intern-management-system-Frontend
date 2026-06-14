@@ -265,7 +265,7 @@ git push origin feature-name
 
 ## Shivam Namdev
 
-## Kanika  
+## Kanika kadav
 
 **MERN Stack Developer**
 
@@ -287,4 +287,4 @@ git push origin feature-name
 
 If you found this project useful, please consider giving it a **star ⭐** on GitHub.
 
-Made with ❤️ by **  Ruchita Kadav & Shivam Namdev**
+
