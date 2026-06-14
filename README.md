@@ -265,7 +265,7 @@ git push origin feature-name
 
 ## Shivam Namdev
 
-## Kanika kadav
+## Kanika kinjale
 
 **MERN Stack Developer**
 
